@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>2027 年賀状｜ひつじのおさんぽ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<script>
+/* ===== 差し替えはここ（文言・写真）。下のHTMLにはJSなしでも読めるよう同じ初期値が入っている ===== */
+const CONFIG = {
+  greeting: '謹賀新年',
+  year: '2027',
+  sub: 'ひつじ年のはじまりに',
+  scrollHint: 'スクロールして ひつじとおさんぽ',
+  defaultTo: '田中さん',
+  toSuffix: ' へ',
+  defaultMsg: '昨年は大変お世話になりました。今年もぜひ遊びに来てください！',
+  photos: [
+    { src: '../shared/photos/p1.jpg', caption: '春、みんなでお花見' },
+    { src: '../shared/photos/p2.jpg', caption: '夏の海で砂のお城づくり' },
+    { src: '../shared/photos/p3.jpg', caption: '夏祭り、はじめての手持ち花火' },
+    { src: '../shared/photos/p4.jpg', caption: '運動会、最後まで走りきったよ' },
+    { src: '../shared/photos/p5.jpg', caption: '3歳のお誕生日おめでとう' },
+    { src: '../shared/photos/p6.jpg', caption: '雪の日、大きな雪だるま' },
+  ],
+  closing: {
+    head: 'あけまして\nおめでとうございます',
+    text: '本年もよろしくお願いいたします',
+    date: '2027年 元旦',
+    from: '佐藤家一同',
+  },
+};
+// 演出モードの目印。演出の準備に失敗したら外して「縦に並べるだけ」の表示に戻す
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.documentElement.classList.add('js');
+  addEventListener('DOMContentLoaded', () => { if (!window.storyReady) document.documentElement.classList.remove('js'); });
+}
+</script>
+<style>
+/* ===== 色はここ ===== */
+:root {
+  --paper: #fff8ea;
+  --paper-box: #fffdf7;
+  --ink: #4a3a2e;
+  --accent: #d8443a;
+  --gold: #f2b632;
+  /* 写真の縫い取りの色（img/yarn-1〜6.png の毛糸玉と同じ並び） */
+  --yarn-1: #f29bb0;
+  --yarn-2: #6fb1e4;
+  --yarn-3: #a98bd8;
+  --yarn-4: #f28a3c;
+  --yarn-5: #e5483d;
+  --yarn-6: #5cc4aa;
+  --font-title: 'Yusei Magic', 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
+  --font-body: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Yu Gothic', sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-body); font-weight: 500; color: var(--ink); line-height: 1.8; background: var(--paper); }
+
+/* ---------- 基本（演出なし・縦に並べるだけ）: reduced-motion・JS無効・JS失敗のとき ---------- */
+.scene { display: none; }
+.stage { padding-bottom: 2.5rem; }
+.stitched { background: var(--paper-box); outline: 2px dashed var(--stitch, var(--accent)); outline-offset: -8px; box-shadow: 0 5px 0 rgb(74 58 46 / .12); }
+
+.p-title { position: relative; min-height: 100vh; min-height: 100svh; padding-top: 6vh; text-align: center; }
+html:not(.js) .p-title { background: #bfe0f2 url(img/bg-opening.jpg) center bottom / cover no-repeat; }
+.greeting { display: inline-block; margin: 0; writing-mode: vertical-rl; font-family: var(--font-title); font-weight: 400; line-height: 1.1; letter-spacing: .08em;
+  font-size: min(15vw, 8.6vh, 4.6rem); color: var(--accent); text-shadow: 3px 3px 0 #fff, -1px -1px 0 #fff; }
+.year { margin: .1em 0 0; font-family: var(--font-title); line-height: 1.1; letter-spacing: .06em; font-size: min(15vw, 8vh, 4.4rem); text-shadow: 3px 3px 0 #fff; }
+.sub { margin: .5em 0 0; font-weight: 700; letter-spacing: .2em; text-shadow: 0 0 6px #fff, 0 0 6px #fff; }
+.hint { display: inline-block; margin: .9em 0 0; padding: .1em 1.1em; border-radius: 99px; font-size: .9rem; font-weight: 700; letter-spacing: .08em; color: #fff; background: rgb(47 90 28 / .72); }
+.hint::after { content: ' ↓'; }
+.sheep-still { position: absolute; left: 9%; bottom: 8%; width: 36%; max-width: 12rem; height: auto; }
+
+.p-letter { width: min(100% - 2rem, 30rem); margin: 2.5rem auto; padding: 2rem 1.6rem 1.8rem; --stitch: var(--gold); }
+.p-letter h2 { margin: 0 0 .5em; font-family: var(--font-title); font-weight: 400; font-size: 1.7rem; line-height: 1.4; color: var(--accent); overflow-wrap: anywhere; }
+.p-letter p { margin: 0; font-size: 1.06rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.photo { width: min(100% - 2rem, 34rem); margin: 0 auto 2rem; padding: 12px 12px 4px; }
+.frame { background: linear-gradient(rgb(255 255 255 / .6), rgb(255 255 255 / .6)), var(--stitch); }
+.frame img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.frame img.noimg { visibility: hidden; } /* 写真が未着でも枠とキャプションは残す */
+.photo figcaption { height: 44px; line-height: 44px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; font-family: var(--font-title); font-size: min(1.2rem, 5vw); }
+
+.p-card { width: min(100% - 2rem, 25rem); margin: 3rem auto 0; padding: 2.2rem 1.2rem 1.9rem; text-align: center; }
+.p-card h2 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: 1.55rem; line-height: 1.5; color: var(--accent); white-space: pre-line; }
+.p-card img { display: block; width: min(66%, 34vh); height: auto; margin: .8rem auto .6rem; }
+.p-card p { margin: 0; font-weight: 700; }
+.p-card .from { margin-top: .3em; font-family: var(--font-title); font-weight: 400; font-size: 1.25rem; }
+
+.back { margin: 2rem 0 0; text-align: center; font-size: .75rem; }
+.back a { color: var(--ink); }
+
+/* ---------- 演出モード: 1画面のステージを固定。絵はスクロールで流れ、写真と文字は決まった場所でその場で切り替わる ---------- */
+.js #story { height: calc(var(--screens, 8.7) * 100vh); height: calc(var(--screens, 8.7) * 100svh); }
+.js .stage { position: sticky; top: 0; height: 100vh; height: 100svh; padding: 0; overflow: hidden; background: #bfe0f2; }
+
+/* 絵（位置は毎フレーム scrollY から直接。transition は付けない） */
+.js .scene { display: block; position: absolute; inset: 0; }
+.far { position: absolute; top: 0; left: 0; height: 100%; width: auto; max-width: none; will-change: transform; }
+.sheep { position: absolute; left: 0; bottom: var(--sheep-b); width: var(--sheep-w); height: var(--sheep-h); will-change: transform;
+  background: url(img/sheep-frames.png) 0 0 / 400% 100% no-repeat; } /* 歩行4コマを横に並べたシート */
+.yarn { position: absolute; left: 0; bottom: var(--yarn-b); width: var(--yarn-s); height: var(--yarn-s); object-fit: contain; visibility: hidden; will-change: transform; }
+.grass { position: absolute; left: 0; bottom: 0; width: calc(100% + var(--tile-w)); height: var(--ground-h); will-change: transform;
+  background: url(img/grass-tile.png) 0 0 / var(--tile-w) 100% repeat-x; }
+.trail { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 7px; }
+.trail span { width: 26px; height: 26px; border: 2px dashed rgb(255 255 255 / .75); border-radius: 50%; }
+.trail span.got { border: 0; background: center / contain no-repeat; }
+.flash { position: absolute; inset: 0; opacity: 0; will-change: opacity; background: radial-gradient(circle at 50% 45%, #fffdf2, #ffe9a8 70%, #f9d77e); }
+
+/* 写真と文字: 位置・大きさは整数pxで固定（JSが --fx などを入れる）。切り替えは 0.18秒の不透明度だけ */
+.js .panel { position: absolute; margin: 0; opacity: 0; visibility: hidden; transition: opacity .18s linear, visibility 0s .18s; }
+.js .panel.on { opacity: 1; visibility: visible; transition: opacity .18s linear; }
+.js .p-title { left: 0; right: 0; top: var(--fy); min-height: 0; padding: 0; }
+.js .sheep-still { display: none; }
+.js .p-letter { left: var(--lx); top: var(--fy); width: var(--lw); max-height: 50vh; max-height: 50svh; overflow-y: auto; /* 長いメッセージは便箋の中でスクロール */ }
+.js .photo { left: var(--fx); top: var(--fy); width: var(--fw); }
+.js .frame img { height: var(--ih); aspect-ratio: auto; }
+.js .p-card { left: var(--cx); top: var(--cy); width: var(--cw); }
+.js .back { left: 0; right: 0; bottom: 10px; }
+.js .stage[data-state^="card"] .trail { visibility: hidden; } /* 一覧へのリンクと重ねない */
+.js .stage:not(.ready) .frame img, .js .stage:not(.ready) .p-card img { display: none; } /* JSが読み込み順を決めるまで読み始めない */
+</style>
+<script>
+// アプリ内ブラウザ（LINE など）には、CSS の svh が実際の画面の高さより大幅に小さく出るものがある
+// （画面が上半分だけになり、最後まで進めない）。ずれているときだけ、スタイルの svh を実測の高さ（--svh）に置き換える。
+// 合っているブラウザでは何もしない
+(function () {
+  var root = document.documentElement, probe = document.createElement('div'), done = false, last = '';
+  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none';
+  function fix() {
+    root.appendChild(probe);
+    var css = probe.offsetHeight, real = window.innerHeight;
+    root.removeChild(probe);
+    if (!css || !real || (!done && css >= real * 0.75)) return false; // Safari のバーの伸び縮み（1〜2割）は正常の範囲
+    var value = real / 100 + 'px';
+    if (value === last) return false;
+    root.style.setProperty('--svh', last = value);
+    if (!done) {
+      done = true;
+      document.querySelectorAll('style').forEach(function (s) { s.textContent = s.textContent.replace(/(\d*\.?\d+)svh/g, 'calc(var(--svh) * $1)'); });
+    }
+    return true;
+  }
+  fix();
+  addEventListener('resize', fix); // 各テンプレートの resize 処理より先に登録して、先に高さを直す
+  ['load', 'pageshow'].forEach(function (type) { addEventListener(type, function () { if (fix()) dispatchEvent(new Event('resize')); }); });
+})();
+</script>
+</head>
+<body>
+<main id="story">
+  <div class="stage" id="stage">
+    <div class="scene" aria-hidden="true">
+      <img class="far" id="far" src="img/bg-panorama.jpg" width="2172" height="724" alt="" loading="lazy">
+      <div class="sheep" id="sheep"></div>
+      <div id="yarns"></div>
+      <div class="grass" id="grass"></div>
+      <div class="trail" id="trail"></div>
+      <div class="flash" id="flash"></div>
+    </div>
+
+    <section class="panel p-title on" id="title">
+      <h1 class="greeting" id="greeting">謹賀新年</h1>
+      <p class="year" id="year">2027</p>
+      <p class="sub" id="sub">ひつじ年のはじまりに</p>
+      <p class="hint" id="hint">スクロールして ひつじとおさんぽ</p>
+      <img class="sheep-still" src="img/sheep-walk.png" width="362" height="420" alt="赤いマフラーのひつじ" loading="lazy">
+    </section>
+
+    <section class="panel p-letter stitched" id="letter">
+      <h2 id="to">田中さん へ</h2>
+      <p id="msg">昨年は大変お世話になりました。今年もぜひ遊びに来てください！</p>
+    </section>
+
+    <figure class="panel photo stitched" style="--stitch: var(--yarn-1)">
+      <div class="frame"><img src="../shared/photos/p1.jpg" width="1200" height="900" alt="春、みんなでお花見" loading="lazy"></div>
+      <figcaption>春、みんなでお花見</figcaption>
+    </figure>
+    <figure class="panel photo stitched" style="--stitch: var(--yarn-2)">
+      <div class="frame"><img src="../shared/photos/p2.jpg" width="1200" height="900" alt="夏の海で砂のお城づくり" loading="lazy"></div>
+      <figcaption>夏の海で砂のお城づくり</figcaption>
+    </figure>
+    <figure class="panel photo stitched" style="--stitch: var(--yarn-3)">
+      <div class="frame"><img src="../shared/photos/p3.jpg" width="1200" height="900" alt="夏祭り、はじめての手持ち花火" loading="lazy"></div>
+      <figcaption>夏祭り、はじめての手持ち花火</figcaption>
+    </figure>
+    <figure class="panel photo stitched" style="--stitch: var(--yarn-4)">
+      <div class="frame"><img src="../shared/photos/p4.jpg" width="1200" height="900" alt="運動会、最後まで走りきったよ" loading="lazy"></div>
+      <figcaption>運動会、最後まで走りきったよ</figcaption>
+    </figure>
+    <figure class="panel photo stitched" style="--stitch: var(--yarn-5)">
+      <div class="frame"><img src="../shared/photos/p5.jpg" width="1200" height="900" alt="3歳のお誕生日おめでとう" loading="lazy"></div>
+      <figcaption>3歳のお誕生日おめでとう</figcaption>
+    </figure>
+    <figure class="panel photo stitched" style="--stitch: var(--yarn-6)">
+      <div class="frame"><img src="../shared/photos/p6.jpg" width="1200" height="900" alt="雪の日、大きな雪だるま" loading="lazy"></div>
+      <figcaption>雪の日、大きな雪だるま</figcaption>
+    </figure>
+
+    <section class="panel p-card stitched" id="card">
+      <h2 id="endHead">あけまして
+おめでとうございます</h2>
+      <img src="img/sheep-ending.png" width="640" height="607" alt="金色の毛糸玉を抱えたひつじ" loading="lazy">
+      <p id="endText">本年もよろしくお願いいたします</p>
+      <p id="endDate">2027年 元旦</p>
+      <p class="from" id="endFrom">佐藤家一同</p>
+    </section>
+
+    <p class="panel back" id="back"><a href="../">← サンプル一覧へ</a></p>
+  </div>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const $ = (id) => document.getElementById(id);
+  const figures = [...document.querySelectorAll('.photo')];
+  const photoImgs = figures.map((figure) => figure.querySelector('img'));
+
+  /* ===== 1) 中身（textContent のみ） ===== */
+  const query = new URLSearchParams(location.search);
+  const param = (key, fallback, max) => (query.get(key) || '').trim().slice(0, max) || fallback;
+  $('greeting').textContent = CONFIG.greeting;
+  $('year').textContent = CONFIG.year;
+  $('sub').textContent = CONFIG.sub;
+  $('hint').textContent = CONFIG.scrollHint;
+  $('to').textContent = param('to', CONFIG.defaultTo, 40) + CONFIG.toSuffix;
+  $('msg').textContent = param('msg', CONFIG.defaultMsg, 300);
+  $('endHead').textContent = CONFIG.closing.head;
+  $('endText').textContent = CONFIG.closing.text;
+  $('endDate').textContent = CONFIG.closing.date;
+  $('endFrom').textContent = CONFIG.closing.from;
+  figures.forEach((figure, i) => {
+    const photo = CONFIG.photos[i];
+    const img = photoImgs[i];
+    img.addEventListener('error', () => img.classList.add('noimg'));
+    if (!photo) return;
+    if (img.getAttribute('src') !== photo.src) img.src = photo.src;
+    img.alt = photo.caption;
+    figure.querySelector('figcaption').textContent = photo.caption;
+  });
+
+  if (!root.classList.contains('js')) return;
+
+  /* ===== 2) スクロール演出。失敗したら .js を外して「縦に並べるだけ」に戻す ===== */
+  let onScroll = null;
+  const fallback = (error) => {
+    root.classList.remove('js');
+    removeEventListener('scroll', onScroll);
+    document.getElementById('story').style.height = '';
+    document.querySelectorAll('.panel img[data-src]').forEach((img) => { if (!img.getAttribute('src')) img.src = img.dataset.src; });
+    console.warn('scroll animation disabled', error);
+  };
+  try {
+    // 画面何枚ぶんスクロールしたら何が起きるか
+    const TIME = {
+      letter: 0.7,    // 挨拶 → 宛名メッセージ
+      firstHit: 1.6,  // 1つめの毛糸玉がひつじに届く（写真1が出る）
+      step: 0.85,     // 写真1枚ぶん
+      lastHold: 1.0,  // 最後の写真 → 金の毛糸玉
+      flash: 0.35,    // 金の毛糸玉のあと、明るくなりきるまで
+      card: 0.12,     // 金の毛糸玉のあと、カードが出るまで
+      tail: 0.85,     // カードが出てからの残り
+    };
+    const GROUND = 0.6;        // スクロール1pxで地面が流れるpx（毛糸玉も同じ速さ）
+    const FLASH_MAX = 0.8;
+    const SHEET = { frames: 4, cellW: 256, cellH: 300 };  // img/sheep-frames.png
+    const TILE = { w: 2400, h: 245 };                     // img/grass-tile.png
+
+    const story = $('story'), stage = $('stage'), far = $('far'), sheep = $('sheep'), grass = $('grass'), flash = $('flash');
+    const title = $('title'), letter = $('letter'), card = $('card'), back = $('back');
+    const cardImg = card.querySelector('img');
+    const count = figures.length;
+    const hits = figures.map((_, i) => TIME.firstHit + TIME.step * i);
+    hits.push(hits[count - 1] + TIME.lastHold); // 最後は金の毛糸玉
+    const end = hits[count] + TIME.tail;
+
+    // 写真は「今の1枚＋先の2枚」だけ読む（一斉に読まない）
+    const lazy = [...photoImgs, cardImg];
+    lazy.forEach((img) => { img.dataset.src = img.getAttribute('src'); img.removeAttribute('src'); img.loading = 'eager'; });
+    const load = (img) => { if (img && !img.getAttribute('src')) img.src = img.dataset.src; };
+
+    const yarns = hits.map((_, i) => {
+      const img = new Image();
+      img.className = 'yarn';
+      img.alt = '';
+      img.dataset.src = `img/yarn-${i < count ? i + 1 : 'gold'}.png`;
+      $('yarns').append(img);
+      return img;
+    });
+    const slots = hits.map(() => $('trail').appendChild(document.createElement('span')));
+
+    const clamp = (v, a = 0, b = 1) => Math.min(Math.max(v, a), b);
+    const px = (v) => `${v}px`;
+    let W = 1, H = 1, scrollLen = 1, farSpeed = 0, tileW = 1, sheepX = 0, sheepH = 1, noseX = 0, stride = 1, hitPx = [];
+    let ticking = false, lastKey = '', lastFrame = -1;
+
+    // 大きさと位置を整数pxで決める（写真の枠は 1px も動かさない）
+    const layout = () => {
+      W = stage.clientWidth;
+      H = stage.clientHeight;
+      story.style.height = px(Math.round((end + 1) * H)); // 端数を出さない（最後に枠が半端な位置へずれないように）
+      const groundH = Math.round(H * 0.14);
+      sheepH = Math.round(Math.min(H * 0.2, W * 0.42));
+      const sheepW = Math.round(sheepH * SHEET.cellW / SHEET.cellH);
+      const yarnS = Math.round(sheepH * 0.38);
+      tileW = Math.round(groundH * TILE.w / TILE.h);
+      sheepX = Math.round(Math.max(12, W * 0.1));
+      noseX = sheepX + sheepW * 0.93;
+      stride = sheepH * 0.3;
+      const imgH = Math.floor(Math.min(W - 56, 560, H * 0.47 * 4 / 3) / 4) * 3;
+      const frameW = imgH / 3 * 4 + 24;
+      const letterW = Math.min(W - 32, 480);
+      const cardW = Math.min(W - 32, 400);
+      const vars = {
+        '--ground-h': groundH, '--tile-w': tileW, '--sheep-w': sheepW, '--sheep-h': sheepH, '--sheep-b': Math.round(groundH * 0.74), // ひづめが草の穂先に少し隠れる高さ
+        '--yarn-s': yarnS, '--yarn-b': Math.round(groundH * 0.7),
+        '--ih': imgH, '--fw': frameW, '--fx': Math.round((W - frameW) / 2), '--fy': Math.max(12, Math.round(H * 0.06)),
+        '--lw': letterW, '--lx': Math.round((W - letterW) / 2), '--cw': cardW, '--cx': Math.round((W - cardW) / 2),
+      };
+      for (const [name, value] of Object.entries(vars)) stage.style.setProperty(name, px(value));
+      stage.style.setProperty('--cy', px(Math.max(8, Math.round((H - card.offsetHeight) / 2))));
+      scrollLen = Math.max(story.offsetHeight - H, 1);
+      hitPx = hits.map((hit) => Math.round(hit * H));
+      farSpeed = Math.max(H * 2172 / 724 - W, 0) / scrollLen; // 遠景は最後にちょうど右端まで流れる
+    };
+
+    const update = () => {
+      ticking = false;
+      const y = clamp(-story.getBoundingClientRect().top, 0, scrollLen);
+      const ground = y * GROUND;
+
+      // 絵: 遠景はゆっくり、草むらと毛糸玉は同じ速さで左へ。ひつじは歩いた距離でコマを替える
+      far.style.transform = `translate3d(${-y * farSpeed}px,0,0)`;
+      grass.style.transform = `translate3d(${-(ground % tileW)}px,0,0)`;
+      const frame = Math.floor(ground / stride) % SHEET.frames;
+      if (frame !== lastFrame) {
+        lastFrame = frame;
+        sheep.style.backgroundPositionX = `${frame * 100 / (SHEET.frames - 1)}%`;
+      }
+      let hop = 0;
+      const passed = hitPx.filter((hit, i) => {
+        const x = noseX + (hit - y) * GROUND;
+        const visible = y < hit && x < W + 4;
+        if (visible) { load(yarns[i]); yarns[i].style.transform = `translate3d(${x}px,0,0)`; }
+        yarns[i].style.visibility = visible ? 'visible' : 'hidden';
+        hop = Math.max(hop, clamp(1 - Math.abs(y - hit - H * 0.03) / (H * 0.05))); // 届いたところでぴょこっと
+        return y >= hit;
+      }).length;
+      sheep.style.transform = `translate3d(${sheepX}px,${-hop * sheepH * 0.1}px,0)`;
+      flash.style.opacity = clamp((y - hitPx[count]) / (TIME.flash * H)) * FLASH_MAX;
+
+      // 写真と文字: 区切りを越えた瞬間にその場で切り替える
+      const state = y < TIME.letter * H ? 'title' : passed === 0 ? 'letter' : passed <= count ? 'photo'
+        : y >= hitPx[count] + TIME.card * H ? 'card' : 'none';
+      const key = state + passed;
+      if (key === lastKey) return;
+      lastKey = key;
+      stage.dataset.state = key;
+      title.classList.toggle('on', state === 'title');
+      letter.classList.toggle('on', state === 'letter');
+      card.classList.toggle('on', state === 'card');
+      back.classList.toggle('on', state === 'card');
+      figures.forEach((figure, i) => figure.classList.toggle('on', state === 'photo' && i < passed)); // 重ねて上の1枚が見える
+      for (let i = passed - 1; i <= passed + 1; i++) load(photoImgs[i]);
+      if (passed >= count - 1) load(cardImg);
+      slots.forEach((slot, i) => {
+        const got = i < passed;
+        slot.classList.toggle('got', got);
+        slot.style.backgroundImage = got ? `url(${yarns[i].dataset.src})` : '';
+      });
+    };
+
+    const safeUpdate = () => { try { update(); } catch (error) { fallback(error); } };
+    onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(safeUpdate);
+    };
+
+    stage.classList.add('ready');
+    layout();
+    update();
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', () => { if (!root.classList.contains('js')) return; layout(); lastKey = ''; safeUpdate(); });
+    window.storyReady = true;
+  } catch (error) {
+    fallback(error);
+  }
+})();
+</script>
+</body>
+</html>

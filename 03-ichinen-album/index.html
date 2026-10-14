@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<script>
+/* ===== 差し替えはここだけ =====
+   文言・写真・シールは CONFIG、色は下の :root の CSS変数。
+   宛名とメッセージは URL の ?to= と ?msg= で上書きできます。
+   note（手書きメモ）と sheep / say（ひつじのシールとひとこと）は空文字で非表示。
+   bits は季節ごとに上から流れてくる小さなかざり（photos の season と同じ文字で引く）。 */
+const CONFIG = {
+  albumTitle: '2026年のおもいで',
+  familyName: '佐藤家',
+  greeting: '謹賀新年',
+  subGreeting: 'あけまして おめでとう ございます',
+  year: '2027',
+  hint: 'めくってね',
+  to: '田中さん',
+  msg: '昨年は大変お世話になりました。今年もぜひ遊びに来てください！',
+  closing: '本年もよろしくお願いいたします',
+  date: '2027年 元旦',
+  signature: '佐藤家一同',
+  backSay: 'またね〜',
+  end: 'おしまい',
+  photos: [
+    { src: '../shared/photos/p1.jpg', caption: '春、みんなでお花見', season: '春', kana: 'はる', sticker: 'img/st-sakura.webp',
+      note: '満開だった！', sheep: 'img/sheep-camera.webp', say: 'はい、チーズ！' },
+    { src: '../shared/photos/p2.jpg', caption: '夏の海で砂のお城づくり', season: '夏', kana: 'なつ', sticker: 'img/st-watermelon.webp',
+      note: '力作です', sheep: 'img/sheep-hot.webp', say: 'あついメェ…' },
+    { src: '../shared/photos/p3.jpg', caption: '夏祭り、はじめての手持ち花火', season: '夏', kana: 'なつ', sticker: 'img/st-sunflower.webp',
+      note: 'こわごわ…', sheep: 'img/sheep-wave.webp', say: 'きれいだメェ〜' },
+    { src: '../shared/photos/p4.jpg', caption: '運動会、最後まで走りきったよ', season: '秋', kana: 'あき', sticker: 'img/st-momiji.webp',
+      note: 'よくがんばった！', sheep: 'img/sheep-cheer.webp', say: 'がんばれ〜！' },
+    { src: '../shared/photos/p5.jpg', caption: '3歳のお誕生日おめでとう', season: '秋', kana: 'あき', sticker: 'img/st-balloon.webp',
+      note: 'ろうそく3本', sheep: 'img/sheep-cake.webp', say: 'ケーキたべたい' },
+    { src: '../shared/photos/p6.jpg', caption: '雪の日、大きな雪だるま', season: '冬', kana: 'ふゆ', sticker: 'img/st-snowman.webp',
+      note: 'パパより大きい？', sheep: 'img/sheep-bow.webp', say: 'さむいメェ〜' }
+  ],
+  bits: {
+    '春': ['img/bit-petal.webp', 'img/bit-sakura.webp'],
+    '夏': ['img/bit-drop.webp', 'img/bit-star.webp'],
+    '秋': ['img/bit-momiji.webp', 'img/bit-ginkgo.webp'],
+    '冬': ['img/bit-snowflake.webp', 'img/bit-snowball.webp']
+  }
+};
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>2027年 年賀状｜わが家の一年アルバム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Yomogi&family=Zen+Kurenaido&display=swap" rel="stylesheet">
+<style>
+:root {
+  --desk: #54402f;        /* 机（アルバムの外側） */
+  --kraft: #cfa66f;       /* 台紙の色（img/kraft.jpg が読めないときの地色） */
+  --paper: #fbf6ea;       /* 白い紙・ポラロイドのフチ */
+  --ink: #3b2e25;         /* えんぴつ・文字 */
+  --pen: #24507c;         /* 手書きメモのボールペン */
+  --red: #c63d2d;         /* スタンプの朱色 */
+  --marker: #f6d875;      /* 見出しの蛍光ペン */
+  --tape-a: rgba(233, 148, 138, .82);
+  --tape-b: rgba(134, 182, 170, .82);
+  --tape-c: rgba(240, 206, 112, .86);
+  --photo-bg: #e4d8c4;    /* 写真が無いとき・読み込み中の色 */
+  --font-hand: 'Zen Kurenaido', 'Hiragino Maru Gothic ProN', 'Yu Gothic', sans-serif;
+  --font-title: 'Yomogi', 'Zen Kurenaido', 'Hiragino Maru Gothic ProN', sans-serif;
+  --font-letter: 'Klee One', 'Zen Kurenaido', 'Hiragino Mincho ProN', serif;
+  /* ポラロイドの幅：画面の高さに収まる範囲でいちばん大きく */
+  --rest: 330px;          /* 写真以外（見出し・キャプション・メモ）に残す高さ */
+  --vh: 100vh;
+  --pw: min(100%, max(260px, calc((var(--vh) - var(--rest)) * 4 / 3)), 640px); /* 横向きスマホなど低い画面でも写真が消えない下限 */
+}
+@supports (height: 100svh) { :root { --vh: 100svh; } }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--desk) repeating-linear-gradient(92deg, transparent 0 46px, rgba(0, 0, 0, .09) 46px 48px);
+  color: var(--ink);
+  font: 400 17px/1.7 var(--font-hand);
+}
+img { max-width: 100%; height: auto; }
+.doodle { display: block; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+
+/* ---- 土台は縦に並んだ静的なページ（JS無効・動きを減らす設定ではこのまま読む） ---- */
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 56px 12px 56px 40px;
+  overflow: hidden;
+  /* リング穴 ＋ ページの継ぎ目の影 ＋ クラフト紙 */
+  background:
+    radial-gradient(circle at 19px 32px, var(--desk) 6px, rgba(0, 0, 0, .28) 7px, transparent 8px) 0 0 / 38px 64px repeat-y,
+    linear-gradient(rgba(59, 46, 37, .3), transparent 14px),
+    var(--kraft) url(img/kraft.jpg) center / cover;
+}
+
+/* ---- マスキングテープ（紙の上辺に貼る。動かさない） ---- */
+.taped { position: relative; }
+.taped::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  top: -13px;
+  left: 50%;
+  width: 96px;
+  height: 27px;
+  margin-left: -48px;
+  background: var(--tape, var(--tape-a)) repeating-linear-gradient(135deg, transparent 0 6px, rgba(255, 255, 255, .3) 6px 9px);
+  transform: rotate(-4deg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+  clip-path: polygon(3% 0, 97% 0, 100% 25%, 97% 50%, 100% 75%, 97% 100%, 3% 100%, 0 75%, 3% 50%, 0 25%);
+}
+.page:nth-child(even) .taped::before { transform: rotate(5deg); margin-left: -20px; }
+
+/* ---- 朱色のスタンプ（文字） ---- */
+.stamp {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 5.2rem;
+  height: 5.2rem;
+  border: 3px solid var(--red);
+  border-radius: 50%;
+  outline: 1.5px solid var(--red);
+  outline-offset: 3px;
+  color: var(--red);
+  font: 600 1.35rem/1.15 var(--font-letter);
+  opacity: .88;
+  mix-blend-mode: multiply;
+  transform: rotate(-12deg);
+}
+.stamp b { writing-mode: vertical-rl; height: 2.3em; font-weight: 600; }
+
+/* ---- ふきだし ---- */
+.bubble {
+  position: relative;
+  display: inline-block;
+  padding: .1rem .7rem;
+  border: 2px solid var(--ink);
+  border-radius: 1.2rem;
+  background: var(--paper);
+  font-size: .95rem;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+/* ---- 表紙 ---- */
+.cover { gap: .7rem; text-align: center; }
+.cover .family { margin: 0; font-size: .95rem; letter-spacing: .3em; }
+.cover .art { display: block; width: min(100%, 520px, 52vh); }
+.label {
+  margin: 0;
+  padding: .8rem 1.4rem .6rem;
+  background: var(--paper);
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, .14), 0 8px 18px rgba(0, 0, 0, .18);
+  font: 400 clamp(1.6rem, 7.5vw, 2.7rem)/1.3 var(--font-title);
+  transform: rotate(-2deg);
+}
+.cover .year-row { display: flex; align-items: center; justify-content: center; }
+.cover .year {
+  margin: 0;
+  font: 400 clamp(4rem, min(25vw, 15vh), 9rem)/1 var(--font-title);
+  text-shadow: 4px 4px 0 var(--marker);
+}
+.cover .year-row .stamp { margin-left: -1rem; align-self: flex-start; }
+.cover .sub { margin: 0; font-size: 1.1rem; }
+.cover .hint { display: flex; flex-direction: column; align-items: center; margin: 0; color: var(--pen); }
+.cover .hint svg { width: 34px; transform: rotate(205deg); }
+
+/* ---- 手紙（メモ用紙） ---- */
+.letter-wrap { display: flex; flex-direction: column; align-items: flex-start; width: min(100%, 520px); }
+.letter {
+  width: 100%;
+  padding: 2.6rem 1.4rem 2.6rem 2.6rem;
+  background:
+    linear-gradient(90deg, transparent 1.75rem, rgba(198, 61, 45, .4) 1.75rem, rgba(198, 61, 45, .4) calc(1.75rem + 1.5px), transparent calc(1.75rem + 1.5px)),
+    repeating-linear-gradient(transparent 0 calc(2.2rem - 1px), rgba(44, 90, 134, .25) calc(2.2rem - 1px) 2.2rem) 0 .5rem,
+    var(--paper);
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, .12), 0 10px 22px rgba(0, 0, 0, .2);
+  font: 400 1.12rem/2.2rem var(--font-letter);
+  transform: rotate(1deg);
+  --tape: var(--tape-b);
+}
+.letter h2 { margin: 0; font: 600 1.5rem/2.2rem var(--font-letter); overflow-wrap: anywhere; }
+.letter .msg { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.letter .from { margin: 2.2rem 0 0; text-align: right; }
+.letter-wrap .sheep-sticker { width: clamp(88px, 26vw, 130px); margin: -3.4rem 0 0 4%; transform: rotate(-7deg); z-index: 1; }
+
+/* ---- 写真ページ：季節の見出し → 写真 → 手書きメモとひつじ ---- */
+.season, .extras { width: var(--pw); }
+.season {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: 0;
+  font: 400 clamp(2.2rem, 7vh, 3.2rem)/1.2 var(--font-title);
+}
+.season img { width: clamp(64px, 12vh, 108px); transform: rotate(-8deg); }
+.season span { padding: 0 .5rem; background: linear-gradient(transparent 58%, var(--marker) 58% 92%, transparent 92%); }
+.season small { font-size: 1rem; letter-spacing: .25em; color: var(--pen); }
+.polaroid {
+  width: var(--pw);
+  margin: 0;
+  padding: 12px 12px 0;
+  background: var(--paper);
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, .13), 0 12px 24px rgba(0, 0, 0, .24);
+}
+.photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 0;
+  background: var(--photo-bg) repeating-linear-gradient(45deg, transparent 0 11px, rgba(59, 46, 37, .07) 11px 13px);
+  color: inherit;
+  font: inherit;
+  overflow: hidden;
+}
+button.photo { cursor: zoom-in; }
+.photo:focus-visible, .close:focus-visible, a:focus-visible { outline: 3px solid var(--pen); outline-offset: 3px; }
+.photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.noimg .photo img { visibility: hidden; }
+.polaroid figcaption { padding: .5rem .2rem .65rem; font-size: 1.08rem; line-height: 1.5; text-align: center; }
+.extras { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .6rem; min-height: 2.4rem; }
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: .3rem;
+  margin: 0 0 0 .4rem;
+  color: var(--pen);
+  font-size: 1.12rem;
+  line-height: 1.4;
+  transform: rotate(-3deg);
+}
+.note svg { width: 36px; flex: none; }
+.note span { padding-top: .75rem; white-space: nowrap; }
+.sheep { display: flex; flex-direction: column; align-items: center; gap: .25rem; margin: 0; transform: rotate(4deg); }
+.sheep img { width: clamp(70px, 13vh, 116px); }
+/* ページごとに左右を入れ替えて、貼り方にばらつきを出す */
+.photo-page:nth-child(even) .season { flex-direction: row-reverse; }
+.photo-page:nth-child(even) .season img { transform: rotate(9deg); }
+.photo-page:nth-child(even) .extras { flex-direction: row-reverse; }
+.photo-page:nth-child(even) .note { flex-direction: row-reverse; margin: 0 .4rem 0 0; transform: rotate(3deg); }
+.photo-page:nth-child(even) .note svg { transform: scaleX(-1); }
+.photo-page:nth-child(even) .sheep { transform: rotate(-4deg); }
+
+/* ---- 裏表紙 ---- */
+.back { gap: 1.4rem; text-align: center; }
+.back .card {
+  width: min(100%, 480px);
+  padding: 2.2rem 1.2rem 1.8rem;
+  background: var(--paper);
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, .13), 0 10px 22px rgba(0, 0, 0, .2);
+  font-family: var(--font-letter);
+  transform: rotate(-1.5deg);
+  --tape: var(--tape-c);
+}
+.back .card p { margin: 0; }
+.back .closing { font-size: clamp(1rem, 4.5vw, 1.5rem); font-weight: 600; }
+.back .card .date { margin-top: 1.2rem; }
+.back .sig { font-size: 1.25rem; }
+.back .row { display: flex; align-items: center; justify-content: center; gap: 1.2rem; }
+.back .sheep img { width: clamp(96px, 17vh, 150px); }
+.back .end { margin: 0; font: 400 1.5rem/1 var(--font-title); color: var(--pen); }
+footer { font-size: .8rem; }
+footer a { color: inherit; }
+
+/* ---- ライトボックス（開閉にアニメなし） ---- */
+dialog {
+  width: min(94vw, 96vh);
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  overflow: visible;
+}
+dialog::backdrop { background: rgba(30, 22, 16, .88); }
+dialog .polaroid { width: 100%; padding: 14px 14px 0; }
+dialog form { margin: .9rem 0 0; text-align: center; }
+.close {
+  padding: .35rem 1.3rem;
+  border: 2px solid var(--paper);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--paper);
+  font: 400 1.05rem/1.6 var(--font-hand);
+  cursor: pointer;
+}
+
+/* ===== ステージ表示（JSが動き、動きを減らす設定でないとき） =====
+   写真・文字は画面の決まった場所でその場で切り替える。シールやひつじは scrollY から毎フレーム位置を出して流す。 */
+.probe { position: fixed; top: 0; left: 0; width: 0; height: 100vh; height: 100svh; visibility: hidden; pointer-events: none; }
+.stage-on .stage { position: sticky; top: 0; height: 100vh; height: 100lvh; overflow: hidden; }
+.stage-on .sheet { position: absolute; top: 0; height: 100%; overflow: hidden; box-shadow: 0 0 40px rgba(0, 0, 0, .5); }
+.paper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background:
+    radial-gradient(circle at 19px 32px, var(--desk) 6px, rgba(0, 0, 0, .28) 7px, transparent 8px) 0 0 / 38px 64px repeat-y,
+    var(--kraft) url(img/kraft.jpg) 0 0 / 100% auto repeat-y;
+  will-change: transform;
+}
+.stage-on .page, .fixed {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .18s linear, visibility 0s linear .18s;
+}
+.stage-on .page { position: absolute; top: 0; left: 0; z-index: 3; width: 100%; max-width: none; height: var(--H); padding-top: 16px; padding-bottom: 16px; background: none; }
+.stage-on .page.on, .fixed.on { opacity: 1; visibility: visible; transition: opacity .18s linear; }
+.stage-on .photo-page, .stage-on .letter-wrap .sheep-sticker { display: none; }
+.fixed { position: absolute; z-index: 3; margin: 0; }
+/* 写真の枠：位置と大きさは JS が整数pxで決める。transform は付けない */
+.frame .photo { position: relative; aspect-ratio: auto; }
+.frame .photo img { position: absolute; top: 0; left: 0; opacity: 0; transition: opacity .18s linear; }
+.frame .photo img.on { opacity: 1; }
+.frame.noimg .photo img { visibility: hidden; }
+.frame figcaption { padding: 0 .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.season-label {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  padding: .1rem .9rem .1rem .6rem;
+  background: var(--paper);
+  box-shadow: 1px 2px 0 rgba(0, 0, 0, .14), 0 5px 12px rgba(0, 0, 0, .18);
+  font: 400 2.3rem/1.35 var(--font-title);
+  transform: rotate(-3deg);
+}
+.season-label span { padding: 0 .3rem; background: linear-gradient(transparent 58%, var(--marker) 58% 92%, transparent 92%); }
+.season-label small { font-size: .95rem; letter-spacing: .2em; color: var(--pen); }
+.slip {
+  display: flex;
+  align-items: flex-start;
+  gap: .3rem;
+  padding: 0 .8rem .15rem .4rem;
+  background: var(--paper);
+  box-shadow: 1px 2px 0 rgba(0, 0, 0, .12), 0 4px 10px rgba(0, 0, 0, .16);
+  color: var(--pen);
+  font-size: 1.08rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  transform: rotate(-2deg);
+}
+.slip svg { width: 30px; flex: none; margin-top: .1rem; }
+.slip span { padding-top: .35rem; }
+/* 流れるもの：かざり(1) < シール・ひつじ(2) < 写真と文字(3) < テープ(4) */
+.flow { position: absolute; top: 0; left: 0; z-index: 2; max-width: none; visibility: hidden; pointer-events: none; will-change: transform; }
+img.flow { object-fit: contain; }
+.flow.bit { z-index: 1; }
+.flow.tape {
+  z-index: 4;
+  width: 96px;
+  height: 27px;
+  background: var(--tape, var(--tape-a)) repeating-linear-gradient(135deg, transparent 0 6px, rgba(255, 255, 255, .3) 6px 9px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+  clip-path: polygon(3% 0, 97% 0, 100% 25%, 97% 50%, 100% 75%, 97% 100%, 3% 100%, 0 75%, 3% 50%, 0 25%);
+}
+.walker img { display: block; width: 100%; height: 100%; max-width: none; object-fit: contain; object-position: bottom; animation: bob 2.6s ease-in-out infinite; }
+.walker .bubble { position: absolute; bottom: 100%; left: 50%; margin-bottom: 2px; transform: translateX(-50%); }
+.small .walker .bubble { display: none; }
+.small .season-label { font-size: 1.5rem; }
+@keyframes bob { 50% { transform: translateY(-3px); } }
+
+@media (min-width: 800px) {
+  :root { --rest: 420px; }
+  body { font-size: 18px; }
+  .page { padding: 64px 56px 64px 84px; background-position: 18px 0, 0 0, center; }
+  .bubble { font-size: 1.05rem; }
+}
+</style>
+<script>
+// アプリ内ブラウザ（LINE など）には、CSS の svh が実際の画面の高さより大幅に小さく出るものがある
+// （画面が上半分だけになり、最後まで進めない）。ずれているときだけ、スタイルの svh を実測の高さ（--svh）に置き換える。
+// 合っているブラウザでは何もしない
+(function () {
+  var root = document.documentElement, probe = document.createElement('div'), done = false, last = '';
+  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none';
+  function fix() {
+    root.appendChild(probe);
+    var css = probe.offsetHeight, real = window.innerHeight;
+    root.removeChild(probe);
+    if (!css || !real || (!done && css >= real * 0.75)) return false; // Safari のバーの伸び縮み（1〜2割）は正常の範囲
+    var value = real / 100 + 'px';
+    if (value === last) return false;
+    root.style.setProperty('--svh', last = value);
+    if (!done) {
+      done = true;
+      document.querySelectorAll('style').forEach(function (s) { s.textContent = s.textContent.replace(/(\d*\.?\d+)svh/g, 'calc(var(--svh) * $1)'); });
+    }
+    return true;
+  }
+  fix();
+  addEventListener('resize', fix); // 各テンプレートの resize 処理より先に登録して、先に高さを直す
+  ['load', 'pageshow'].forEach(function (type) { addEventListener(type, function () { if (fix()) dispatchEvent(new Event('resize')); }); });
+})();
+</script>
+</head>
+<body>
+
+<main class="album" aria-label="2026年のアルバム">
+<div class="stage"><div class="sheet">
+
+  <!-- 表紙 -->
+  <section class="page cover">
+    <p class="family"><span data-cfg="familyName">佐藤家</span>のアルバム</p>
+    <img class="art" src="img/cover.webp" alt="お正月飾りに囲まれた、ひつじの家族のイラスト" width="1000" height="619">
+    <h1 class="label taped" data-cfg="albumTitle">2026年のおもいで</h1>
+    <div class="year-row">
+      <p class="year" data-cfg="year">2027</p>
+      <div class="stamp"><b data-cfg="greeting">謹賀新年</b></div>
+    </div>
+    <p class="sub" data-cfg="subGreeting">あけまして おめでとう ございます</p>
+    <p class="hint"><span data-cfg="hint">めくってね</span><svg class="doodle" viewBox="0 0 60 44" aria-hidden="true"><path d="M56 38C40 40 18 32 10 8M3 19 10 6l10 9"/></svg></p>
+  </section>
+
+  <!-- 挟まれた手紙 -->
+  <section class="page letter-page">
+    <div class="letter-wrap">
+    <div class="letter taped">
+      <h2><span data-cfg="to">田中さん</span> へ</h2>
+      <p class="msg" data-cfg="msg">昨年は大変お世話になりました。今年もぜひ遊びに来てください！</p>
+      <p class="from"><span data-cfg="familyName">佐藤家</span>より</p>
+    </div>
+    <img class="sheep-sticker" src="img/sheep-bow.webp" alt="" width="330" height="360" loading="lazy" decoding="async">
+    </div>
+  </section>
+
+  <!-- 写真1 -->
+  <section class="page photo-page">
+    <h2 class="season"><img src="img/st-sakura.webp" alt="" width="360" height="312" loading="lazy" decoding="async"><span>春</span><small>はる</small></h2>
+    <figure class="polaroid taped" style="--tape:var(--tape-a)">
+      <button type="button" class="photo"><img src="../shared/photos/p1.jpg" alt="春、みんなでお花見" width="1200" height="900" loading="lazy" decoding="async"></button>
+      <figcaption>春、みんなでお花見</figcaption>
+    </figure>
+    <div class="extras">
+      <p class="note"><svg class="doodle" viewBox="0 0 60 44" aria-hidden="true"><path d="M56 38C40 40 18 32 10 8M3 19 10 6l10 9"/></svg><span>満開だった！</span></p>
+      <p class="sheep"><span class="bubble">はい、チーズ！</span><img src="img/sheep-camera.webp" alt="" width="312" height="360" loading="lazy" decoding="async"></p>
+    </div>
+  </section>
+
+  <!-- 写真2 -->
+  <section class="page photo-page">
+    <h2 class="season"><img src="img/st-watermelon.webp" alt="" width="360" height="359" loading="lazy" decoding="async"><span>夏</span><small>なつ</small></h2>
+    <figure class="polaroid taped" style="--tape:var(--tape-b)">
+      <button type="button" class="photo"><img src="../shared/photos/p2.jpg" alt="夏の海で砂のお城づくり" width="1200" height="900" loading="lazy" decoding="async"></button>
+      <figcaption>夏の海で砂のお城づくり</figcaption>
+    </figure>
+    <div class="extras">
+      <p class="note"><svg class="doodle" viewBox="0 0 60 44" aria-hidden="true"><path d="M56 38C40 40 18 32 10 8M3 19 10 6l10 9"/></svg><span>力作です</span></p>
+      <p class="sheep"><span class="bubble">あついメェ…</span><img src="img/sheep-hot.webp" alt="" width="360" height="243" loading="lazy" decoding="async"></p>
+    </div>
+  </section>
+
+  <!-- 写真3 -->
+  <section class="page photo-page">
+    <h2 class="season"><img src="img/st-sunflower.webp" alt="" width="327" height="360" loading="lazy" decoding="async"><span>夏</span><small>なつ</small></h2>
+    <figure class="polaroid taped" style="--tape:var(--tape-c)">
+      <button type="button" class="photo"><img src="../shared/photos/p3.jpg" alt="夏祭り、はじめての手持ち花火" width="1200" height="900" loading="lazy" decoding="async"></button>
+      <figcaption>夏祭り、はじめての手持ち花火</figcaption>
+    </figure>
+    <div class="extras">
+      <p class="note"><svg class="doodle" viewBox="0 0 60 44" aria-hidden="true"><path d="M56 38C40 40 18 32 10 8M3 19 10 6l10 9"/></svg><span>こわごわ…</span></p>
+      <p class="sheep" hidden><span class="bubble"></span><img alt="" loading="lazy" decoding="async"></p>
+    </div>
+  </section>
+
+  <!-- 写真4 -->
+  <section class="page photo-page">
+    <h2 class="season"><img src="img/st-momiji.webp" alt="" width="360" height="303" loading="lazy" decoding="async"><span>秋</span><small>あき</small></h2>
+    <figure class="polaroid taped" style="--tape:var(--tape-a)">
+      <button type="button" class="photo"><img src="../shared/photos/p4.jpg" alt="運動会、最後まで走りきったよ" width="1200" height="900" loading="lazy" decoding="async"></button>
+      <figcaption>運動会、最後まで走りきったよ</figcaption>
+    </figure>
+    <div class="extras">
+      <p class="note"><svg class="doodle" viewBox="0 0 60 44" aria-hidden="true"><path d="M56 38C40 40 18 32 10 8M3 19 10 6l10 9"/></svg><span>よくがんばった！</span></p>
+      <p class="sheep"><span class="bubble">がんばれ〜！</span><img src="img/sheep-cheer.webp" alt="" width="319" height="360" loading="lazy" decoding="async"></p>
+    </div>
+  </section>
+
+  <!-- 写真5 -->
+  <section class="page photo-page">
+    <h2 class="season"><img src="img/st-balloon.webp" alt="" width="273" height="360" loading="lazy" decoding="async"><span>秋</span><small>あき</small></h2>
+    <figure class="polaroid taped" style="--tape:var(--tape-b)">
+      <button type="button" class="photo"><img src="../shared/photos/p5.jpg" alt="3歳のお誕生日おめでとう" width="1200" height="900" loading="lazy" decoding="async"></button>
+      <figcaption>3歳のお誕生日おめでとう</figcaption>
+    </figure>
+    <div class="extras">
+      <p class="note"><svg class="doodle" viewBox="0 0 60 44" aria-hidden="true"><path d="M56 38C40 40 18 32 10 8M3 19 10 6l10 9"/></svg><span>ろうそく3本</span></p>
+      <p class="sheep"><span class="bubble">ケーキたべたい</span><img src="img/sheep-cake.webp" alt="" width="304" height="360" loading="lazy" decoding="async"></p>
+    </div>
+  </section>
+
+  <!-- 写真6 -->
+  <section class="page photo-page">
+    <h2 class="season"><img src="img/st-snowman.webp" alt="" width="316" height="360" loading="lazy" decoding="async"><span>冬</span><small>ふゆ</small></h2>
+    <figure class="polaroid taped" style="--tape:var(--tape-c)">
+      <button type="button" class="photo"><img src="../shared/photos/p6.jpg" alt="雪の日、大きな雪だるま" width="1200" height="900" loading="lazy" decoding="async"></button>
+      <figcaption>雪の日、大きな雪だるま</figcaption>
+    </figure>
+    <div class="extras">
+      <p class="note"><svg class="doodle" viewBox="0 0 60 44" aria-hidden="true"><path d="M56 38C40 40 18 32 10 8M3 19 10 6l10 9"/></svg><span>パパより大きい？</span></p>
+      <p class="sheep" hidden><span class="bubble"></span><img alt="" loading="lazy" decoding="async"></p>
+    </div>
+  </section>
+
+  <!-- 裏表紙 -->
+  <section class="page back">
+    <div class="card taped">
+      <p class="closing" data-cfg="closing">本年もよろしくお願いいたします</p>
+      <p class="date" data-cfg="date">2027年 元旦</p>
+      <p class="sig" data-cfg="signature">佐藤家一同</p>
+    </div>
+    <div class="row">
+      <p class="sheep"><span class="bubble" data-cfg="backSay">またね〜</span><img src="img/sheep-wave.webp" alt="手をふるひつじのイラスト" width="316" height="360" loading="lazy" decoding="async"></p>
+      <div class="stamp"><b data-cfg="greeting">謹賀新年</b></div>
+    </div>
+    <p class="end" data-cfg="end">おしまい</p>
+    <footer><a href="../">← サンプル一覧へ</a></footer>
+  </section>
+</div></div>
+</main>
+
+<!-- 写真を大きく見る（Esc・背景タップ・ボタンで閉じる。フォーカスの出入りは dialog 任せ） -->
+<dialog id="lightbox" aria-label="写真を大きく表示">
+  <figure class="polaroid">
+    <div class="photo"><img alt=""></div>
+    <figcaption></figcaption>
+  </figure>
+  <form method="dialog"><button class="close">とじる ✕</button></form>
+</dialog>
+
+<script>
+(function () {
+  try {
+    // 宛名・メッセージは URL から（textContent でのみ反映）
+    var q = new URLSearchParams(location.search);
+    var cfg = Object.assign({}, CONFIG);
+    var to = (q.get('to') || '').trim(), msg = (q.get('msg') || '').trim();
+    if (to) cfg.to = to.slice(0, 40);
+    if (msg) cfg.msg = msg.slice(0, 400);
+
+    document.querySelectorAll('[data-cfg]').forEach(function (el) {
+      var v = cfg[el.dataset.cfg];
+      if (typeof v === 'string') el.textContent = v;
+    });
+
+    var box = document.getElementById('lightbox');
+    var boxImg = box.querySelector('img'), boxCap = box.querySelector('figcaption');
+
+    document.querySelectorAll('.photo-page').forEach(function (page, i) {
+      var p = cfg.photos[i];
+      if (!p) { page.hidden = true; return; }
+      var img = page.querySelector('.photo img'), btn = page.querySelector('button');
+      var note = page.querySelector('.note'), sheep = page.querySelector('.sheep');
+      // 写真が無い・読めないときは斜線の台紙だけ見せる
+      img.addEventListener('error', function () { page.classList.add('noimg'); });
+      img.addEventListener('load', function () { page.classList.remove('noimg'); });
+      // 先読み(eager)はしない: 全写真を同時に取りに行くと、簡易サーバーでは取りこぼす(502)ことがある
+      if (img.getAttribute('src') !== p.src) img.src = p.src; // 同じURLを入れ直すと読み込みがやり直しになり、まれに表示されない
+      img.alt = p.caption;
+      page.querySelector('figcaption').textContent = p.caption;
+      btn.setAttribute('aria-label', p.caption + '（大きく表示）');
+      page.querySelector('.season span').textContent = p.season || '';
+      page.querySelector('.season small').textContent = p.kana || '';
+      if (p.sticker) page.querySelector('.season img').src = p.sticker;
+      note.hidden = !p.note;
+      note.querySelector('span').textContent = p.note || '';
+      sheep.hidden = !p.sheep;
+      if (p.sheep) sheep.querySelector('img').src = p.sheep;
+      sheep.querySelector('.bubble').textContent = p.say || '';
+      sheep.querySelector('.bubble').hidden = !p.say;
+      btn.addEventListener('click', function () {
+        box.classList.toggle('noimg', page.classList.contains('noimg'));
+        boxImg.src = p.src;
+        boxImg.alt = p.caption;
+        boxCap.textContent = p.caption;
+        box.showModal();
+      });
+    });
+
+    // 背景（dialog自身）をタップしたら閉じる
+    box.addEventListener('click', function (e) { if (e.target === box) box.close(); });
+
+    // 動きを減らす設定のときは、縦に並んだままにする
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      startStage(cfg, function (p, noimg) {
+        box.classList.toggle('noimg', !!noimg);
+        boxImg.src = p.src;
+        boxImg.alt = p.caption;
+        boxCap.textContent = p.caption;
+        box.showModal();
+      });
+    }
+  } catch (e) {
+    document.documentElement.classList.remove('stage-on');
+    console.error(e); // 失敗しても、HTMLに書いてある初期内容がそのまま見える
+  }
+
+  /* ステージ表示。スクロール量（画面何枚ぶんか = p）だけから、場面とシールの位置を決める。
+     写真と文字は場面が変わった瞬間に入れ替えるだけで、動かさない。 */
+  function startStage(cfg, openBox) {
+    var root = document.documentElement;
+    var track = document.querySelector('.album'), st = track.querySelector('.stage'), sheet = st.querySelector('.sheet');
+    var mk = function (tag, cls, parent) { var e = document.createElement(tag); e.className = cls; (parent || sheet).appendChild(e); return e; };
+    var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+    // K = [[t, x, y, 回転], ...] を折れ線でつなぐ
+    var kf = function (t, K) {
+      for (var i = 0; i < K.length - 2 && t > K[i + 1][0]; i++);
+      var a = K[i], b = K[i + 1], u = clamp((t - a[0]) / (b[0] - a[0]), 0, 1);
+      return [a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u, a[3] + (b[3] - a[3]) * u];
+    };
+
+    var P = cfg.photos, N = P.length;
+    // 場面の区切り（画面の高さを1として）：表紙 → 手紙 → 写真N枚 → 裏表紙
+    var T0 = 0.9, T1 = 1.9, L = 0.85, TE = T1 + L * N, END = TE + 0.9;
+    var g = {}; // 画面サイズから決まる寸法（layout で更新）
+
+    var probe = mk('div', 'probe', document.body);
+    var paper = sheet.insertBefore(mk('div', 'paper'), sheet.firstChild);
+    var cover = sheet.querySelector('.cover'), letter = sheet.querySelector('.letter-page'), back = sheet.querySelector('.back');
+
+    // 固定位置に置くもの：季節の見出し・写真の枠・手書きメモ
+    var label = mk('p', 'fixed season-label'), labelK = mk('span', '', label), labelN = mk('small', '', label);
+    var frame = mk('figure', 'fixed polaroid frame'), btn = mk('button', 'photo', frame), cap = mk('figcaption', '', frame);
+    btn.type = 'button';
+    var imgs = P.map(function () {
+      var im = mk('img', '', btn);
+      im.alt = '';
+      im.decoding = 'async';
+      im.addEventListener('error', function () { im.dataset.err = '1'; show(); });
+      return im;
+    });
+    var slip = mk('p', 'fixed slip');
+    slip.appendChild(document.querySelector('.note svg').cloneNode(true));
+    var slipText = mk('span', '', slip);
+    var scene = '', idx = -1;
+    btn.addEventListener('click', function () { openBox(P[idx], imgs[idx].dataset.err); });
+
+    // 流れるもの。a〜b（p の範囲）のあいだだけ出し、f(0〜1) が [x, y, 回転] を返す
+    var items = [];
+    var flow = function (cls, src, a, b, f) {
+      var e = mk(src ? 'img' : 'div', 'flow ' + cls);
+      if (src) { e.alt = ''; e.decoding = 'async'; }
+      var it = { el: e, a: a, b: b, f: f, src: src, img: src ? e : null, on: false };
+      items.push(it);
+      return it;
+    };
+    var bit = function (src, k, a, b) { // 上から下へ流れる小さなかざり
+      var lane = [0.07, 0.31, 0.56, 0.79, 0.93, 0.44][k % 6], size = Math.round((28 + (k * 7) % 16) * g.k), dir = k % 2 ? 1 : -1;
+      var it = flow('bit', src, a, b, function (t) {
+        return [lane * g.w - size / 2 + (t - 0.5) * dir * 44, -40 + t * (g.hl + 80), dir * (k * 31 % 50 + t * 150)];
+      });
+      it.el.style.width = it.el.style.height = size + 'px';
+    };
+    g.k = Math.min(st.clientWidth, 940) >= 800 ? 1.3 : 1; // PC幅ではかざりを少し大きく
+    var walker = function (src, say, a, b) { // ページの下の端を左から右へ歩くひつじ
+      var it = flow('walker', '', a, b, function (t) {
+        var x = -g.ws - 60 + t * (g.w + g.ws + 120);
+        return [x, g.wy - Math.abs(Math.sin(x / 24)) * 5, 0];
+      });
+      if (say) mk('span', 'bubble', it.el).textContent = say;
+      it.img = mk('img', '', it.el);
+      it.img.alt = '';
+      it.src = src;
+      it.walker = true;
+    };
+    var all = Object.keys(cfg.bits || {}).reduce(function (r, k) { return r.concat(cfg.bits[k]); }, []);
+    var k, i;
+    if (all.length) {
+      for (k = 0; k < 6; k++) bit(all[k * 3 % all.length], k, -0.5 + k * 0.22, 0.5 + k * 0.22);       // 表紙
+      for (k = 0; k < 3; k++) bit(all[(k * 3 + 1) % all.length], k + 2, T0 - 0.3 + k * 0.25, T0 + 0.5 + k * 0.25); // 手紙
+      for (k = 0; k < 6; k++) bit(all[(k * 3 + 2) % all.length], k + 1, TE - 0.2 + k * 0.15, TE + 0.8 + k * 0.15); // 裏表紙
+    }
+    var bow = letter.querySelector('.sheep-sticker');
+    if (bow) walker(bow.getAttribute('src'), '', T0, T1 + 0.1 * L);
+    P.forEach(function (p, i) {
+      var s = T1 + L * i, e = s + L, mine = (cfg.bits || {})[p.season] || [];
+      for (var k = 0; k < 7 && mine.length; k++) bit(mine[k % mine.length], k + i, s + (k * 0.09 - 0.15) * L, s + (k * 0.09 + 0.6) * L);
+      if (p.sticker) { // 季節のシール：上から降りてきて、写真の右上でゆっくり動き、右へ出ていく
+        flow('st', p.sticker, s, e, function (t) {
+          return kf(t, [[0, g.rx - 14, -g.ss - 12, -16], [0.25, g.rx - 10, g.ry, -8], [0.75, g.rx, g.ry, 4], [1, g.w + 12, g.ry, 14]]);
+        }).sticker = true;
+      }
+      // テープ：上から来て枠の上辺に止まり、次の写真の前に右へ出ていく（動くのは写真ではなくテープ）
+      var rot = i % 2 ? 5 : -4;
+      flow('tape', '', s, e, function (t) {
+        return kf(t, [[0, g.tx - 50, -40, rot], [0.18, g.tx, g.ty, rot], [0.7, g.tx, g.ty, rot], [1, g.w + 10, g.ty, rot]]);
+      }).el.style.setProperty('--tape', 'var(--tape-' + 'abc'[i % 3] + ')');
+      if (p.sheep) walker(p.sheep, p.say, s - 0.1 * L, e + 0.1 * L);
+    });
+
+    // 場面が変わったときだけ呼ぶ：写真・見出し・メモをその場で入れ替える
+    function show() {
+      cover.classList.toggle('on', scene === 'cover');
+      letter.classList.toggle('on', scene === 'letter');
+      back.classList.toggle('on', scene === 'back');
+      var photo = scene === 'photo', p = P[idx];
+      [label, frame, slip].forEach(function (e) { e.classList.toggle('on', photo); });
+      // 写真は「今の1枚と次の2枚」までしか読みに行かない（一斉に読むと簡易サーバーが取りこぼす）
+      var upto = scene === 'cover' ? 0 : scene === 'letter' ? 1 : scene === 'photo' ? idx + 2 : -1;
+      imgs.forEach(function (im, i) {
+        if (i <= upto && i >= idx - 1 && !im.getAttribute('src')) im.src = P[i].src; // 途中へ飛んだときに手前の全部を一度に読まない
+        im.classList.toggle('on', i === idx);
+      });
+      if (!p) return;
+      labelK.textContent = p.season || '';
+      labelN.textContent = p.kana || '';
+      label.hidden = !p.season;
+      cap.textContent = p.caption;
+      btn.setAttribute('aria-label', p.caption + '（大きく表示）');
+      slipText.textContent = p.note || '';
+      slip.hidden = !p.note;
+      frame.classList.toggle('noimg', !!imgs[idx].dataset.err);
+    }
+
+    var ticking = false;
+    function update() {
+      ticking = false;
+      var y = Math.max(0, window.pageYOffset), p = Math.min(END, y / g.u);
+      paper.style.transform = 'translate3d(0,' + (-y * 0.12).toFixed(2) + 'px,0)'; // 台紙はゆっくり流れる
+      var sc = p < T0 ? 'cover' : p < T1 ? 'letter' : p < TE ? 'photo' : 'back';
+      var ix = N ? clamp(Math.floor((p - T1) / L), 0, N - 1) : -1;
+      if (sc !== scene || ix !== idx) { scene = sc; idx = ix; show(); }
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i], on = p >= it.a && p <= it.b;
+        if (on) {
+          if (it.src) { it.img.src = it.src; it.src = ''; } // 出番が来てから読む
+          var v = it.f((p - it.a) / (it.b - it.a));
+          it.el.style.transform = 'translate3d(' + v[0].toFixed(2) + 'px,' + v[1].toFixed(2) + 'px,0) rotate(' + v[2].toFixed(2) + 'deg)';
+        }
+        if (on !== it.on) { it.on = on; it.el.style.visibility = on ? 'visible' : 'hidden'; }
+      }
+    }
+
+    // 寸法はすべて整数pxで決める（写真がにじまないように）。基準は「いちばん小さいときの画面の高さ」
+    var lastW = -1, lastH = -1;
+    function layout(force) {
+      var W = st.clientWidth, H = probe.offsetHeight || window.innerHeight;
+      if (force !== true && W === lastW && H === lastH) return;
+      lastW = W; lastH = H;
+      var w = Math.min(W, 940), wide = w >= 800, small = H < 520;
+      var padL = wide ? 84 : 40, padR = wide ? 56 : 12;
+      var top = small ? 58 : clamp(Math.round(H * 0.19), 110, 160), bot = small ? 64 : clamp(Math.round(H * 0.26), 150, 220);
+      var capH = small ? 32 : 40;
+      var pw = Math.floor(clamp(Math.min(w - padL - padR - 24, (H - top - bot - 12 - capH) * 4 / 3), 160, 600) / 4) * 4, ph = pw * 3 / 4;
+      var fw = pw + 24, fh = ph + 12 + capH;
+      var fx = padL + Math.max(0, Math.round((w - padL - padR - fw) / 2)), fy = top + Math.max(0, Math.round((H - top - bot - fh) / 2));
+      root.classList.toggle('small', small);
+      root.style.setProperty('--H', H + 'px');
+      // 表紙・手紙・裏表紙が画面より高いとき（横向き、長いメッセージ）は、その場面だけ縮めて収める
+      [cover, letter, back].forEach(function (pg) {
+        pg.style.zoom = pg.style.paddingLeft = '';
+        pg.style.height = 'auto';
+        var z = Math.min(1, H / pg.offsetHeight), pl = parseFloat(getComputedStyle(pg).paddingLeft);
+        pg.style.height = z < 1 ? H / z + 'px' : '';
+        pg.style.paddingLeft = z < 1 ? pl / z + 'px' : ''; // リング穴のぶんの余白は縮めない
+        pg.style.zoom = z < 1 ? z : '';
+      });
+      sheet.style.left = Math.floor((W - w) / 2) + 'px';
+      sheet.style.width = w + 'px';
+      frame.style.cssText = 'left:' + fx + 'px;top:' + fy + 'px;width:' + fw + 'px;height:' + fh + 'px';
+      btn.style.height = ph + 'px';
+      imgs.forEach(function (im) { im.style.width = pw + 'px'; im.style.height = ph + 'px'; });
+      cap.style.cssText = 'height:' + capH + 'px;line-height:' + capH + 'px;font-size:' + Math.min(18, Math.floor(pw / 15)) + 'px';
+      label.style.left = fx - 4 + 'px';
+      label.style.top = Math.max(4, fy - label.offsetHeight - 16) + 'px';
+      slip.style.left = fx + 6 + 'px';
+      slip.style.top = fy + fh + 12 + 'px';
+      // 流れるものの通り道
+      g.h = H; g.w = w; g.hl = st.offsetHeight;
+      g.u = Math.max(H, 600, Math.round(w * 0.72)); // スクロールの長さの単位。横向きでも流れが速くなりすぎないよう下限を置く
+      g.ss = clamp(fy - 16, 40, wide ? 116 : 100);            // 季節のシールの大きさ
+      g.rx = fx + fw - g.ss + 8; g.ry = fy - g.ss - 6;        // その居場所（写真の右上）
+      g.tx = fx + Math.round(fw / 2) - 28; g.ty = fy - 18;    // テープの居場所（枠の上辺）
+      g.ws = clamp(H - (fy + fh + 12 + 40 + (small ? 0 : 34)) - 12, 44, wide ? 132 : 116); // ひつじの大きさ
+      g.wy = H - 12 - g.ws;                                   // ひつじの通り道（下の端）
+      items.forEach(function (it) {
+        if (it.sticker) it.el.style.width = it.el.style.height = g.ss + 'px';
+        if (it.walker) it.el.style.width = it.el.style.height = g.ws + 'px';
+      });
+      paper.style.height = Math.ceil(g.hl + END * g.u * 0.12 + 64) + 'px';
+      track.style.height = Math.ceil(END * g.u + g.hl) + 'px';
+      update();
+    }
+
+    root.classList.add('stage-on');
+    g.u = 1;
+    scene = 'cover'; idx = 0; show(); // 見出しの高さを測るために一度中身を入れる
+    scene = '';
+    layout();
+    window.addEventListener('resize', layout);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layout(true); }); // 字の大きさが決まってから測り直す
+    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<script>
+/* ============================================================
+   差し替えはここだけ。文言・写真・背景の絵。
+   （色・寸法・フォントは下の CSS :root の変数）
+   ============================================================ */
+const CONFIG = {
+  eyebrow: 'A HAPPY NEW YEAR',
+  year: '2027',
+  subGreeting: 'あけましておめでとうございます',
+  line1: '二〇二六年が、暮れていく。',
+  line2: '季節は、めぐって。',
+  line3: 'そして、新しい朝。',
+  greeting: '謹賀新年',
+  to: '田中さん',
+  msg: '昨年は大変お世話になりました。今年もぜひ遊びに来てください！',
+  closing: '本年もよろしくお願いいたします',
+  date: '2027年 元旦',
+  signature: '佐藤家一同',
+  photos: [
+    { src: '../shared/photos/p1.jpg', caption: '春、みんなでお花見' },
+    { src: '../shared/photos/p2.jpg', caption: '夏の海で砂のお城づくり' },
+    { src: '../shared/photos/p3.jpg', caption: '夏祭り、はじめての手持ち花火' },
+    { src: '../shared/photos/p4.jpg', caption: '運動会、最後まで走りきったよ' },
+    { src: '../shared/photos/p5.jpg', caption: '3歳のお誕生日おめでとう' },
+    { src: '../shared/photos/p6.jpg', caption: '雪の日、大きな雪だるま' }
+  ],
+  // 背景の絵。同じ構図（縦長 2:3）の4枚をスクロールに合わせて重ね替え、夜が明けていく。
+  // horizon = その絵の水平線の高さ（上端から。絵ごとの微差をそろえるのに使う）
+  // cloud = 流れる雲の色
+  sky: [
+    { src: 'img/sky-a-night.jpg', horizon: .7174, cloud: '#06132c' },  // 夜
+    { src: 'img/sky-b-dawn.jpg',  horizon: .696,  cloud: '#33204a' },  // 夜明け前（茜）
+    { src: 'img/sky-c-nosun.jpg', horizon: .7174, cloud: '#cf8f58' },  // 初日の出（太陽は別に描いて昇らせる）
+    { src: 'img/sky-d-nosun.jpg', horizon: .7174, cloud: '#ecd2b4' }   // 朝
+  ],
+  sun: { x: .385, size: .115 },  // 絵の幅に対する太陽の左右位置と直径
+  cloudMask: 'img/cloud-bands.png'
+};
+</script>
+<script>document.documentElement.classList.add('boot');</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>2027年 年賀状｜初日の出</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Shippori+Mincho:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font-ja: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --font-en: 'Cormorant Garamond', 'Times New Roman', serif;
+  --bg: #071a38;           /* 絵が届くまでの地色 */
+  --ink-light: #f3efe6;    /* 夜〜夜明け前の文字 */
+  --ink-sunrise: #2b1a0e;  /* 初日の出（金色の空）の文字 */
+  --ink-morning: #0e2148;  /* 朝（水色の空）の文字 */
+  --photo-bg: #1a2450;     /* 写真が未着のときの地色 */
+  --art-y: .65;            /* 横長の画面で絵のどの高さを見せるか（0=上端 1=下端） */
+  --swap: .18s;            /* 写真・文字がその場で入れ替わる時間 */
+}
+* { box-sizing: border-box; margin: 0; }
+html { background: var(--bg); }
+body {
+  font-family: var(--font-ja); font-weight: 400; color: var(--ink-light);
+  line-height: 1.9; text-align: center; -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 文字 ---------- */
+.scene { color: var(--ink-light); text-shadow: 0 0 14px rgb(4 12 31 / .6); }
+.scene.sunrise { color: var(--ink-sunrise); text-shadow: 0 0 14px rgb(255 226 150 / .7); }
+.scene.morning { color: var(--ink-morning); text-shadow: 0 0 14px rgb(255 255 255 / .6); }
+.eyebrow { font-family: var(--font-en); font-weight: 400; font-size: clamp(.7rem, 2.9vw, .95rem); letter-spacing: .5em; text-indent: .5em; }
+.year { font-family: var(--font-en); font-weight: 300; line-height: 1; letter-spacing: .06em; text-indent: .06em; }
+.open .year { font-size: clamp(5rem, min(30vw, 20vh), 12rem); margin: .12em 0 .2em; }
+.sub { font-size: clamp(.8rem, 3.4vw, 1.2rem); letter-spacing: .3em; text-indent: .3em; }
+.hint { display: none; }
+.line { font-weight: 500; font-size: clamp(1.05rem, 4.8vw, 1.8rem); letter-spacing: .18em; text-indent: .18em; text-wrap: balance; }
+.cap { font-size: clamp(.85rem, 3.5vw, 1.1rem); letter-spacing: .16em; text-indent: .16em; }
+.to { font-weight: 500; font-size: clamp(1.3rem, 5.6vw, 2.2rem); letter-spacing: .14em; text-indent: .14em; overflow-wrap: anywhere; }
+.msg { max-width: 22em; margin: 1em auto 0; font-size: clamp(1rem, 4.2vw, 1.4rem); line-height: 2; letter-spacing: .06em; white-space: pre-line; overflow-wrap: anywhere; }
+.title h2 { font-weight: 500; font-size: clamp(2.2rem, min(13vw, 12vh), 5.6rem); line-height: 1.2; letter-spacing: .3em; text-indent: .3em; }
+.title .year { font-size: clamp(1.6rem, min(9vw, 7vh), 3.6rem); margin-top: .5em; letter-spacing: .3em; text-indent: .3em; }
+.closing { font-weight: 500; font-size: clamp(1.05rem, 4.6vw, 2rem); letter-spacing: .12em; text-indent: .12em; }
+.date { margin-top: 1.6em; font-size: clamp(.9rem, 3.6vw, 1.25rem); letter-spacing: .2em; text-indent: .2em; }
+.sign { font-size: clamp(.95rem, 3.9vw, 1.4rem); letter-spacing: .24em; text-indent: .24em; }
+.back { display: inline-block; padding: .1em 1em; border-radius: 2em; background: rgb(14 33 72 / .5); color: #fff; font-size: .75rem; letter-spacing: .1em; text-decoration: none; text-shadow: none; }
+.back:hover, .back:focus-visible { text-decoration: underline; }
+
+/* ---------- 既定 = 縦に並んだ静的表示（reduced-motion / JS 無効・失敗時もこれ） ---------- */
+.skybox { display: none; }
+.scene { position: relative; padding: 14vh 7vw; }
+.scene.art { min-height: 100vh; padding-bottom: 46vh; overflow: hidden; background: var(--bg); }
+.scene.art.sunrise { background: #f6a43c; }
+.scene.art.morning { background: #7fbfe6; }
+.scene .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 75%; }
+.inner { position: relative; }
+.shot { padding: 7vh 0; }
+.shot img { display: block; width: min(100%, 720px); height: auto; aspect-ratio: 4 / 3; object-fit: cover; margin: 1.2em auto 1em; background: var(--photo-bg); }
+.morning .back { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); }
+
+/* 起動中（下のスクリプトが演出の準備を終えるまで）は、3 枚目以降の写真を読み込ませない */
+.boot .shot ~ .shot ~ .shot { display: none; }
+
+/* ---------- 演出あり（JS が準備できたら html に .cine が付く） ----------
+   画面は 1 枚の固定ステージ。絵（空・太陽・雲）はスクロール量に合わせて流れ、
+   写真と文字は決まった位置から動かず、その場で入れ替わる。 */
+.cine .track { height: calc(var(--units) * 100vh + 100vh); }
+.cine .stage { position: sticky; top: 0; height: 100vh; height: 100lvh; overflow: hidden; }
+.cine .skybox { display: block; position: absolute; inset: 0; z-index: 0; }
+.skybox > img { position: absolute; max-width: none; opacity: 0; will-change: opacity; }
+.stars, .glints { position: absolute; inset: 0; }
+.stars i, .glints i { position: absolute; left: 0; top: 0; border-radius: 50%; animation: twinkle 3.1s ease-in-out infinite alternate; }
+.stars i { width: 1px; height: 1px; }
+.stars i:nth-child(2), .glints i:nth-child(2) { animation-duration: 4.3s; animation-delay: -1.3s; }
+.stars i:nth-child(3), .glints i:nth-child(3) { animation-duration: 5.2s; animation-delay: -2.9s; }
+.glints { color: var(--sunc, #ffd772); }
+.glints i { width: 9px; height: 2px; animation-duration: 1.7s; }
+.glints i:nth-child(2) { animation-duration: 2.3s; }
+.glints i:nth-child(3) { animation-duration: 2.9s; }
+@keyframes twinkle { from { opacity: .15; } to { opacity: 1; } }
+/* 雲: 絵の形（PNG の透明部分）で型抜きし、空に合わせた色で塗る。外側はスクロール、内側は時間でゆっくり流れる */
+.clouds { position: absolute; left: 0; overflow: visible; will-change: transform; }
+.clouds i { display: block; height: 100%; background: var(--cloud, #06132c); opacity: .5; animation: drift 180s linear infinite;
+  -webkit-mask: var(--cloud-mask) 0 0 / var(--tile) 100% repeat-x; mask: var(--cloud-mask) 0 0 / var(--tile) 100% repeat-x; }
+@keyframes drift { to { transform: translateX(calc(var(--tile) * -1)); } }
+.sunclip { position: absolute; left: 0; top: 0; width: 100%; overflow: hidden; }
+.sun { position: absolute; border-radius: 50%; background: radial-gradient(circle at 50% 45%, #fffef0, var(--sunc, #ffd772) 70%); box-shadow: 0 0 calc(var(--sund, 80px) * .45) var(--sunc, #ffd772); will-change: transform; }
+
+.cine .scene, .cine .scene.art { background: none; }
+.cine .scene { position: absolute; padding: 0; min-height: 0; overflow: visible; opacity: 0; pointer-events: none; transition: opacity var(--swap) linear; }
+.cine .scene.on { opacity: 1; pointer-events: auto; }
+.cine .scene .bg { display: none; }
+.cine .text { inset: 0 0 auto; min-height: var(--zone); padding: 3vh 7vw; display: grid; place-content: center; justify-items: center; }
+/* 写真の枠。位置と大きさは JS が整数 px で決め、スクロールしても動かさない */
+.cine .shot { left: var(--fx); top: var(--fy); width: var(--fw); height: var(--fh); }
+.cine .shot:not(.near) { display: none; }  /* 遠い写真はまだ読み込まない */
+.cine .shot img { width: 100%; height: 100%; margin: 0; aspect-ratio: auto; }
+.cine .shot .line, .cine .shot .cap { position: absolute; left: calc(var(--fx) * -1); width: var(--sw); padding: 0 5vw; }
+.cine .shot .line { bottom: calc(100% + .9em); }
+.cine .shot .cap { top: calc(100% + .9em); }
+.cine .hint { display: block; margin-top: 2.2em; font-family: var(--font-en); font-size: .8rem; letter-spacing: .4em; text-indent: .4em; opacity: .85; }
+.cine .hint::after { content: ''; display: block; width: 1px; height: 2.2rem; margin: .6em auto 0; background: currentColor; transform-origin: top; animation: drip 2.4s ease-in-out infinite; }
+@keyframes drip { 0% { transform: scaleY(0); } 55% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+.cine .morning .back { bottom: auto; top: calc(var(--vh) - 2.8rem); }
+@media (max-height: 500px) {  /* スマホ横向きなど背の低い画面 */
+  .cine .hint { display: none; }
+  .cine .shot .line { font-size: 1rem; bottom: calc(100% + .3em); }
+  .cine .shot .cap { top: calc(100% + .3em); }
+}
+</style>
+</head>
+<body>
+<main class="track" id="track">
+  <div class="stage" id="stage">
+
+    <div class="skybox" id="skybox" aria-hidden="true">
+      <div class="stars" id="stars"><i></i><i></i><i></i></div>
+      <div class="clouds" id="clouds"><i></i></div>
+      <div class="sunclip" id="sunclip"><div class="sun" id="sun"></div></div>
+      <div class="glints" id="glints"><i></i><i></i><i></i></div>
+    </div>
+
+    <section class="scene text art open" data-len=".9">
+      <img class="bg" src="img/sky-a-night.jpg" alt="" width="1024" height="1536" decoding="async">
+      <div class="inner">
+        <p class="eyebrow" data-cfg="eyebrow">A HAPPY NEW YEAR</p>
+        <h1 class="year" data-cfg="year">2027</h1>
+        <p class="sub" data-cfg="subGreeting">あけましておめでとうございます</p>
+        <p class="hint" aria-hidden="true">SCROLL</p>
+      </div>
+    </section>
+
+    <section class="scene shot" data-len=".75">
+      <p class="line" data-cfg="line1">二〇二六年が、暮れていく。</p>
+      <img src="../shared/photos/p1.jpg" alt="春、みんなでお花見" width="1200" height="900" loading="lazy" decoding="async">
+      <p class="cap">春、みんなでお花見</p>
+    </section>
+    <section class="scene shot" data-len=".75">
+      <img src="../shared/photos/p2.jpg" alt="夏の海で砂のお城づくり" width="1200" height="900" loading="lazy" decoding="async">
+      <p class="cap">夏の海で砂のお城づくり</p>
+    </section>
+    <section class="scene shot" data-len=".75">
+      <img src="../shared/photos/p3.jpg" alt="夏祭り、はじめての手持ち花火" width="1200" height="900" loading="lazy" decoding="async">
+      <p class="cap">夏祭り、はじめての手持ち花火</p>
+    </section>
+    <section class="scene shot" data-len=".75">
+      <p class="line" data-cfg="line2">季節は、めぐって。</p>
+      <img src="../shared/photos/p4.jpg" alt="運動会、最後まで走りきったよ" width="1200" height="900" loading="lazy" decoding="async">
+      <p class="cap">運動会、最後まで走りきったよ</p>
+    </section>
+    <section class="scene shot" data-len=".75">
+      <img src="../shared/photos/p5.jpg" alt="3歳のお誕生日おめでとう" width="1200" height="900" loading="lazy" decoding="async">
+      <p class="cap">3歳のお誕生日おめでとう</p>
+    </section>
+    <section class="scene shot" data-len=".75">
+      <img src="../shared/photos/p6.jpg" alt="雪の日、大きな雪だるま" width="1200" height="900" loading="lazy" decoding="async">
+      <p class="cap">雪の日、大きな雪だるま</p>
+    </section>
+
+    <section class="scene text" id="s-line3" data-len=".5">
+      <div class="inner"><p class="line" data-cfg="line3">そして、新しい朝。</p></div>
+    </section>
+
+    <!-- 日が顔を出すところ。?to= と ?msg= で差し替わる -->
+    <section class="scene text art" id="s-msg" data-len="1.1">
+      <img class="bg" src="img/sky-b-dawn.jpg" alt="" width="1024" height="1536" loading="lazy" decoding="async">
+      <div class="inner">
+        <h2 class="to"><span id="to">田中さん</span>へ</h2>
+        <p class="msg" id="msg">昨年は大変お世話になりました。今年もぜひ遊びに来てください！</p>
+      </div>
+    </section>
+
+    <section class="scene text art sunrise title" id="s-title" data-len=".95">
+      <img class="bg" src="img/sky-c-sunrise.jpg" alt="" width="1024" height="1536" loading="lazy" decoding="async">
+      <div class="inner">
+        <h2 data-cfg="greeting">謹賀新年</h2>
+        <p class="year" data-cfg="year">2027</p>
+      </div>
+    </section>
+
+    <section class="scene text art morning" id="s-close" data-len=".85">
+      <img class="bg" src="img/sky-d-morning.jpg" alt="" width="1024" height="1536" loading="lazy" decoding="async">
+      <div class="inner">
+        <p class="closing" data-cfg="closing">本年もよろしくお願いいたします</p>
+        <p class="date" data-cfg="date">2027年 元旦</p>
+        <p class="sign" data-cfg="signature">佐藤家一同</p>
+      </div>
+      <a class="back" href="../">← サンプル一覧へ</a>
+    </section>
+
+  </div>
+</main>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
+
+  // ---- 文言・写真・宛名（textContent のみ） ----
+  $$('[data-cfg]').forEach((el) => {
+    const v = CONFIG[el.dataset.cfg];
+    if (v != null) el.textContent = v;
+  });
+  $$('.shot').forEach((el, i) => {
+    const ph = CONFIG.photos[i];
+    if (!ph) { el.remove(); return; }
+    const img = el.querySelector('img');
+    if (img.getAttribute('src') !== ph.src) img.src = ph.src;
+    img.alt = ph.caption;
+    el.querySelector('.cap').textContent = ph.caption;
+  });
+  const q = new URLSearchParams(location.search);
+  const msgEl = $('#msg');
+  // 改行は 12 行まで（それ以降は 1 行につなぐ）、全体で 300 字まで
+  const lines = ((q.get('msg') || '').trim() || CONFIG.msg).replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').slice(0, 300).split('\n');
+  $('#to').textContent = ((q.get('to') || '').trim() || CONFIG.to).slice(0, 30);
+  msgEl.textContent = lines.slice(0, 11).concat(lines.slice(11).join(' ') || []).join('\n');
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  // ---- 演出 ----
+  const root = document.documentElement;
+  const track = $('#track'), stage = $('#stage'), skybox = $('#skybox'), sun = $('#sun'), sunclip = $('#sunclip');
+  const stars = $('#stars'), clouds = $('#clouds'), glints = $('#glints');
+  const clamp = (t, a = 0, b = 1) => Math.min(b, Math.max(a, t));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mixRgb = (a, b, t) => `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], t))).join(' ')})`;
+  // 折れ線: [[x, y], ...] を x で引く
+  const along = (pts, x) => {
+    if (x <= pts[0][0]) return pts[0][1];
+    for (let i = 1; i < pts.length; i++) if (x <= pts[i][0]) return lerp(pts[i - 1][1], pts[i][1], (x - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0]));
+    return pts[pts.length - 1][1];
+  };
+
+  // 場面（スクロール順）。長さの単位は「画面 1 枚ぶんのスクロール」
+  let at = 0;
+  const scenes = $$('.scene').map((el) => { const s = { el, s: at }; at += parseFloat(el.dataset.len) || 1; return s; });
+  const total = at;
+  const start = (id) => scenes.find((s) => s.el.id === id).s;
+  const uLine3 = start('s-line3'), uMsg = start('s-msg'), uTitle = start('s-title'), uClose = start('s-close');
+
+  // 空: スクロール位置 → 何枚目の絵か（小数は次の絵との混ざり具合）。夜はゆっくり明け、文字が出ている間は急に変えない
+  const skyAt = [[0, 0], [uLine3, 1], [uMsg + .8, 1], [uTitle + .3, 2], [uClose, 2], [uClose + .6, 3]];
+  // 太陽の高さ（直径の何倍ぶん水平線より上に中心があるか）。写真が終わるころ顔を出し、最後まで昇り続ける
+  const sunAt = [[uLine3 - .4, -.62], [uLine3, -.46], [total, 1]];
+  const sunColor = [[-.5, hex('#ff7a3c')], [.2, hex('#ffd772')], [1, hex('#fff3c4')]];
+  const cloudColor = CONFIG.sky.map((s) => hex(s.cloud));
+
+  // 空の絵は必要になってから読む（今の 1 枚と次の 1 枚）。読み終わるまでは不透明度 0 のまま
+  const H0 = CONFIG.sky[0].horizon;
+  const skies = CONFIG.sky.map((cfg, i) => ({ cfg, img: null, ok: false, op: -1 }));
+  const ensure = (i) => {
+    const k = skies[i];
+    if (!k || k.img) return;
+    k.img = new Image();
+    k.img.alt = ''; k.img.decoding = 'async'; k.img.style.zIndex = i - skies.length;
+    k.img.onload = () => { k.ok = true; kick(); };
+    place(k);
+    k.img.src = k.cfg.src;
+    skybox.prepend(k.img);
+  };
+  let L = null;  // 画面寸法から決まる配置
+  const place = (k) => {
+    if (!k.img || !L) return;
+    const f = H0 / k.cfg.horizon;  // 水平線の高さを 1 枚目にそろえる
+    Object.assign(k.img.style, { width: L.iw * f + 'px', height: L.ih * f + 'px', left: L.ix - L.iw * (f - 1) / 2 + 'px', top: L.iy + 'px' });
+  };
+
+  // 決まった乱数で点を打つ（毎回同じ並び）
+  const dots = (els, n, fn) => {
+    let seed = 2027;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    els.forEach((el) => { el.style.boxShadow = Array.from({ length: n }, () => fn(rnd)).join(','); });
+  };
+
+  const layout = () => {
+    const vw = stage.clientWidth, vh = stage.clientHeight, rem = parseFloat(getComputedStyle(root).fontSize);
+    const scale = Math.max(vw / 1024, vh / 1536), iw = 1024 * scale, ih = 1536 * scale;
+    const artY = parseFloat(getComputedStyle(root).getPropertyValue('--art-y')) || 0;
+    const ix = (vw - iw) / 2, iy = (vh - ih) * artY;
+    const horizon = Math.round(iy + H0 * ih), d = Math.round(CONFIG.sun.size * iw), sunX = Math.round(ix + CONFIG.sun.x * iw);
+    L = { vw, vh, iw, ih, ix, iy, horizon, d, tile: 1 };
+    skies.forEach(place);
+
+    // 写真の枠: 水平線より上の空に、4:3 のまま整数 px で置く
+    const set = (k, v) => root.style.setProperty(k, v + 'px');
+    set('--sw', vw); set('--vh', innerHeight);
+    // 上に字幕 1 行、下にキャプション 1 行ぶんの余白を実寸から取る
+    const band = (sel) => {
+      const el = $(sel);
+      if (!el) return 2 * rem;
+      const shot = el.parentElement;
+      shot.style.display = 'block';  // まだ表示していない場面でも測れるように
+      const px = Math.ceil(el.offsetHeight + parseFloat(getComputedStyle(el).fontSize) * (vh <= 500 ? .3 : .9) + 10);
+      shot.style.display = '';
+      return px;
+    };
+    const above = band('.shot .line'), below = band('.shot .cap');
+    const room = Math.max(120, Math.min(horizon, innerHeight) - above - below);
+    let fw = Math.min(vw, Math.floor(room * 4 / 3));
+    fw -= fw % 4;
+    const fh = fw * 3 / 4;
+    set('--fw', fw); set('--fh', fh); set('--fx', Math.floor((vw - fw) / 2)); set('--fy', Math.round(above + (room - fh) / 2));
+    set('--zone', Math.max(vh * .4, horizon - d * 1.55));
+    set('--sund', d);
+
+    sunclip.style.height = horizon + 'px';
+    Object.assign(sun.style, { width: d + 'px', height: d + 'px', left: sunX - d / 2 + 'px', top: horizon - d / 2 + 'px' });
+    const ch = Math.round(horizon * .5), tile = Math.round(ch * 1.5);
+    Object.assign(clouds.style, { top: Math.round(horizon * .46) + 'px', height: ch + 'px', width: Math.ceil(vw / tile + 2) * tile + 'px' });
+    set('--tile', tile); L.tile = tile;
+    dots([...stars.children], 16, (r) => `${Math.round(r() * vw)}px ${Math.round(r() * horizon * .8)}px 0 ${r() < .2 ? 1 : .5}px rgba(255,255,255,${(.5 + r() * .5).toFixed(2)})`);
+    dots([...glints.children], 9, (r) => {
+      const y = horizon + 6 + r() * r() * (vh - horizon - 10);
+      return `${Math.round(sunX - 4 + (r() - .5) * (d * .5 + (y - horizon) * .5))}px ${Math.round(y)}px 0 0 currentColor`;
+    });
+    fit();
+  };
+
+  // 長いメッセージは、顔を出した太陽にかからない高さに収まるまで文字を小さくする（下限 13px）
+  const fit = () => {
+    const scene = $('#s-msg'), room = L.horizon - L.d * .8;
+    msgEl.style.fontSize = '';
+    let px = Math.floor(parseFloat(getComputedStyle(msgEl).fontSize));
+    while (px > 13 && scene.scrollHeight > room) msgEl.style.fontSize = --px + 'px';
+  };
+
+  let cur = -1;
+  const render = () => {
+    const u = clamp(-track.getBoundingClientRect().top / (track.offsetHeight - innerHeight)) * total;
+
+    // 空（スクロール量から直接。遅れや慣性は付けない）
+    const s = along(skyAt, u), k = Math.min(skies.length - 2, Math.floor(s)), t = s - k;
+    ensure(k); ensure(k + 1);
+    let base = k;
+    while (base > 0 && !skies[base].ok) base--;  // まだ届いていなければ、届いている手前の絵を敷いておく
+    skies.forEach((sk, i) => {
+      if (!sk.img) return;
+      const op = !sk.ok ? 0 : i === base ? 1 : i === k + 1 ? t : 0;
+      if (op !== sk.op) { sk.op = op; sk.img.style.opacity = op.toFixed(4); }
+    });
+    stars.style.opacity = clamp(1 - s * 1.15).toFixed(3);
+    clouds.style.setProperty('--cloud', mixRgb(cloudColor[k], cloudColor[k + 1], t));
+    clouds.style.transform = `translate3d(${(-((u * .16 * L.vw) % L.tile)).toFixed(1)}px,0,0)`;
+
+    // 太陽
+    const e = along(sunAt, u);
+    sun.style.transform = `translate3d(0,${(-e * L.d).toFixed(1)}px,0)`;
+    let j = 1;
+    while (j < sunColor.length - 1 && e > sunColor[j][0]) j++;
+    stage.style.setProperty('--sunc', mixRgb(sunColor[j - 1][1], sunColor[j][1], clamp((e - sunColor[j - 1][0]) / (sunColor[j][0] - sunColor[j - 1][0]))));
+    glints.style.opacity = (clamp((e + .5) / .5) * .9).toFixed(3);
+
+    // 写真と文字: その場で入れ替えるだけ（不透明度のみ、CSS の --swap 秒）
+    let idx = scenes.length - 1;
+    while (idx > 0 && u < scenes[idx].s) idx--;
+    if (idx !== cur) {
+      cur = idx;
+      scenes.forEach((sc, i) => {
+        sc.el.classList.toggle('on', i === idx);
+        sc.el.classList.toggle('near', i >= idx - 1 && i <= idx + 2);  // 写真は次の 2 枚まで先に読む
+      });
+    }
+  };
+
+  let raf = 0;
+  const fail = (err) => { root.classList.remove('cine'); console.error(err); };
+  const frame = () => { raf = 0; try { render(); } catch (err) { fail(err); } };
+  const kick = () => { if (!raf && root.classList.contains('cine')) raf = requestAnimationFrame(frame); };
+
+  try {
+    root.style.setProperty('--units', total);
+    root.style.setProperty('--cloud-mask', `url("${CONFIG.cloudMask}")`);
+    root.classList.add('cine');
+    layout();
+    render();
+    addEventListener('scroll', kick, { passive: true });
+    addEventListener('resize', () => { try { layout(); render(); } catch (err) { fail(err); } });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (root.classList.contains('cine')) fit(); });
+  } catch (err) { fail(err); }
+})();
+</script>
+<script>document.documentElement.classList.remove('boot');</script>
+</body>
+</html>

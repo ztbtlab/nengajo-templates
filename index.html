@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>年賀状サイト サンプル5種（2027・未年）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&display=swap">
+<style>
+  :root { --ink:#2a2420; --muted:#6f655d; --paper:#f7f1e6; --red:#b8322a; --line:#d9cdb8; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Hiragino Sans","Noto Sans JP",sans-serif; line-height:1.8; }
+  main { max-width:720px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-family:"Shippori Mincho B1",serif; font-size:clamp(24px,6vw,34px); margin:0 0 4px; letter-spacing:.08em; }
+  h1 small { display:block; font-size:13px; color:var(--red); letter-spacing:.3em; }
+  .lead { color:var(--muted); font-size:14px; margin:12px 0 32px; }
+  ol { list-style:none; margin:0; padding:0; counter-reset:n; }
+  li { counter-increment:n; border-top:1px solid var(--line); padding:24px 0; }
+  li:last-child { border-bottom:1px solid var(--line); }
+  h2 { font-family:"Shippori Mincho B1",serif; font-size:21px; margin:0; display:flex; gap:12px; align-items:baseline; }
+  h2::before { content:counter(n, decimal-leading-zero); color:var(--red); font-size:14px; letter-spacing:.1em; }
+  .type { font-size:12px; color:var(--muted); letter-spacing:.12em; margin:2px 0 8px 34px; }
+  p { margin:0 0 6px; font-size:15px; }
+  dl { margin:10px 0 14px; font-size:13px; color:var(--muted); display:grid; grid-template-columns:5em 1fr; gap:2px 8px; }
+  dt { color:var(--ink); } dd { margin:0; }
+  a.open { display:inline-block; background:var(--ink); color:var(--paper); text-decoration:none;
+    padding:10px 22px; font-size:14px; letter-spacing:.1em; }
+  a.open:focus-visible, a.open:hover { background:var(--red); }
+  .links { display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; }
+  .links a.sub { font-size:13px; color:var(--muted); }
+  footer { margin-top:32px; font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1><small>SAMPLE 2027</small>年賀状サイト サンプル5種</h1>
+  <p class="lead">同じ素材（架空の佐藤家の写真6枚・同じ挨拶文）を、5つのコンセプトで作り分けました。
+    スマホ縦での表示が基本です。どれも、写真は決まった場所でその場で切り替わり、イラストだけがスクロールに合わせて流れます。「宛名を変えて開く」は、送り先ごとにURLを変える仕組みの確認用です。</p>
+  <ol>
+    <li>
+      <h2>ひつじのおさんぽ</h2>
+      <div class="type">スクロール物語型 ／ 去年の正統後継</div>
+      <p>スクロールするとひつじが草原を歩き、毛糸玉に届くたびに写真が切り替わります。最後は金の毛糸玉で締めの挨拶へ。</p>
+      <dl><dt>向く人</dt><dd>小さい子のいる家族。友人・祖父母に「楽しい」と言われたい</dd>
+          <dt>売り</dt><dd>干支キャラが動く。毎年キャラを替えてリピートを狙える</dd></dl>
+      <div class="links"><a class="open" href="01-hitsuji-sanpo/">開く</a>
+        <a class="sub" href="01-hitsuji-sanpo/?to=%E3%81%8A%E3%81%B0%E3%81%82%E3%81%A1%E3%82%83%E3%82%93&msg=%E3%81%BE%E3%81%9F%E9%81%8A%E3%81%B3%E3%81%AB%E8%A1%8C%E3%81%8F%E3%81%AD%EF%BC%81">宛名を変えて開く</a></div>
+    </li>
+    <li>
+      <h2>新春絵巻</h2>
+      <div class="type">和モダン・縦書き型 ／ 上品</div>
+      <p>スクロールすると、遠山・金の霞・季節の草花を描いた絵巻が流れていきます。文字は縦書き、写真は中央の掛け軸に。</p>
+      <dl><dt>向く人</dt><dd>親戚・上司・取引先にも送りたい大人。個人事業主の挨拶にも</dd>
+          <dt>売り</dt><dd>紙の年賀状の品を保ったままWeb化。干支に依存しにくく使い回せる</dd></dl>
+      <div class="links"><a class="open" href="02-wa-emaki/">開く</a>
+        <a class="sub" href="02-wa-emaki/?to=%E5%B1%B1%E7%94%B0%E6%A7%98&msg=%E6%97%A7%E5%B9%B4%E4%B8%AD%E3%81%AF%E6%A0%BC%E5%88%A5%E3%81%AE%E3%81%94%E5%8E%9A%E6%83%85%E3%82%92%E8%B3%9C%E3%82%8A%E3%80%81%E5%8E%9A%E3%81%8F%E5%BE%A1%E7%A4%BC%E7%94%B3%E3%81%97%E4%B8%8A%E3%81%92%E3%81%BE%E3%81%99%E3%80%82">宛名を変えて開く</a></div>
+    </li>
+    <li>
+      <h2>わが家の一年アルバム</h2>
+      <div class="type">スクラップブック型 ／ 写真が主役</div>
+      <p>クラフト紙のアルバムにポラロイド写真。まわりを季節のシールや花びら、ひつじが流れていきます。タップで写真を大きく見られます。</p>
+      <dl><dt>向く人</dt><dd>写真をたくさん・大きく見せたい家族。子どもの成長記録を兼ねたい</dd>
+          <dt>売り</dt><dd>写真の枚数を増やしやすい。演出が控えめで誰でも迷わず見られる</dd></dl>
+      <div class="links"><a class="open" href="03-ichinen-album/">開く</a>
+        <a class="sub" href="03-ichinen-album/?to=%E3%81%95%E3%81%8F%E3%82%89%E3%81%A1%E3%82%83%E3%82%93&msg=%E4%BB%8A%E5%B9%B4%E3%82%82%E3%81%84%E3%81%A3%E3%81%97%E3%82%87%E3%81%AB%E3%81%82%E3%81%9D%E3%81%BC%E3%81%86%E3%81%AD%EF%BC%81">宛名を変えて開く</a></div>
+    </li>
+    <li>
+      <h2>新春おみくじ</h2>
+      <div class="type">参加型 ／ タップして遊ぶ</div>
+      <p>参道を進んで鳥居をくぐり、おみくじを引くと運勢と一緒にあなた宛てのメッセージが出ます。写真は奉納額に。</p>
+      <dl><dt>向く人</dt><dd>友人・同僚に送って話題にしたい人。LINEグループで盛り上がりたい</dd>
+          <dt>売り</dt><dd>「引いた？」と会話が生まれる。何度も開いてもらえる</dd></dl>
+      <div class="links"><a class="open" href="04-omikuji/">開く</a>
+        <a class="sub" href="04-omikuji/?to=%E9%88%B4%E6%9C%A8%E3%81%8F%E3%82%93&msg=%E4%BB%8A%E5%B9%B4%E3%81%93%E3%81%9D%E9%A3%B2%E3%81%BF%E3%81%AB%E8%A1%8C%E3%81%93%E3%81%86%EF%BC%81">宛名を変えて開く</a></div>
+    </li>
+    <li>
+      <h2>初日の出</h2>
+      <div class="type">シネマティック型 ／ ミニマル</div>
+      <p>スクロールにつれて夜が明け、水平線から初日の出が昇ります。言葉と余白で見せる、映画のオープニングのような一枚。</p>
+      <dl><dt>向く人</dt><dd>甘すぎないデザインが好きな人。夫婦・単身・仕事関係にも</dd>
+          <dt>売り</dt><dd>写真が少なくても成立する。干支を使わないので毎年そのまま売れる</dd></dl>
+      <div class="links"><a class="open" href="05-hatsuhinode/">開く</a>
+        <a class="sub" href="05-hatsuhinode/?to=%E4%BD%90%E3%80%85%E6%9C%A8%E3%81%95%E3%82%93&msg=%E6%96%B0%E3%81%97%E3%81%84%E5%B9%B4%E3%81%8C%E3%80%81%E5%AE%9F%E3%82%8A%E5%A4%9A%E3%81%84%E4%B8%80%E5%B9%B4%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%BE%E3%81%99%E3%82%88%E3%81%86%E3%81%AB%E3%80%82">宛名を変えて開く</a></div>
+    </li>
+  </ol>
+  <footer>写真とイラストはAI生成です（家族は架空）。このページはVPN内だけで見られます。</footer>
+</main>
+</body>
+</html>

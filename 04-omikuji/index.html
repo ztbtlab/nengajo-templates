@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>新春おみくじ｜謹賀新年 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Kaisei+Decol:wght@400;700&display=swap" rel="stylesheet">
+<script>
+/* ===== 差し替えはここ（文言・写真・おみくじの中身） ===== */
+const CONFIG = {
+  greeting: '謹賀新年',            // 1文字ずつ提灯に入る
+  year: '2027',
+  sub: '未年 元旦',
+  hint: 'スクロールして参道をすすむ',
+  defaultTo: '田中さん',
+  toSuffix: ' へ',
+  defaultMsg: '昨年は大変お世話になりました。今年もぜひ遊びに来てください！',
+  omikuji: {
+    title: '新春おみくじ',
+    lead: '今年の運勢を、ひとつどうぞ。',
+    label: '御神籤',               // 筒の札に入る文字
+    draw: 'おみくじを引く',
+    again: 'もう一度引く',
+    numbers: ['一', '三', '五', '七', '八', '十一', '二十七', '八十八'],
+    // 凶は入れない
+    fortunes: [
+      { name: '大吉', words: [
+        'もこもこと福が積もる一年。やりたいこと、ぜんぶ叶います。',
+        '向かうところ敵なし。迷ったら進んで吉。',
+        '笑う門には福来る。今年は笑いっぱなしの予感。',
+      ] },
+      { name: '中吉', words: [
+        'あせらず歩けば、良い草原にたどり着きます。',
+        '思いがけない再会あり。連絡は自分からが吉。',
+        'おいしいものに恵まれる年。食べすぎにだけ注意。',
+      ] },
+      { name: '吉', words: [
+        'ふだん通りがいちばんの福。早寝早起きで運気上昇。',
+        '小さな親切が、大きくなって返ってくる一年。',
+        '新しい趣味がぴたりとはまる。まずは一歩。',
+      ] },
+      { name: '小吉', words: [
+        'のんびりが吉。ひつじのように、群れてひと休み。',
+        '探しものは意外と近くに。足もとを見て。',
+        'こつこつ貯めた分だけ、秋に実ります。',
+      ] },
+      { name: '末吉', words: [
+        '運はこれから右肩上がり。後半に大きな福あり。',
+        '急がば回れ。寄り道にこそ良い出会い。',
+        'あたためていた計画、春を待って動くと吉。',
+      ] },
+    ],
+  },
+  albumTitle: '佐藤家の2026年',
+  photos: [
+    { src: '../shared/photos/p1.jpg', caption: '春、みんなでお花見' },
+    { src: '../shared/photos/p2.jpg', caption: '夏の海で砂のお城づくり' },
+    { src: '../shared/photos/p3.jpg', caption: '夏祭り、はじめての手持ち花火' },
+    { src: '../shared/photos/p4.jpg', caption: '運動会、最後まで走りきったよ' },
+    { src: '../shared/photos/p5.jpg', caption: '3歳のお誕生日おめでとう' },
+    { src: '../shared/photos/p6.jpg', caption: '雪の日、大きな雪だるま' },
+  ],
+  images: { // 生成イラスト（原本は docs/materials/images/04-omikuji/）
+    bg: 'img/bg-keidai.jpg',
+    tube: 'img/omikuji-tube.webp',
+    miko: 'img/hitsuji-miko.webp',
+    closing: 'img/shime-saisen.webp',
+    lanterns: 'img/chochin-row.webp', // 以下3枚は横・縦に繰り返して流す
+    ema: 'img/ema-kake.webp',
+    petals: 'img/hanabira.webp',
+  },
+  // スクロール連動の区切り（単位: 画面何枚ぶん進んだか。全体で9枚ぶん）
+  scroll: {
+    length: 9,
+    heroSwitch: 0.55,          // 「謹賀新年」→「2027」に切り替える位置
+    heroEnd: 1.6,              // 鳥居をくぐり終える位置
+    kuji: [1.8, 3.0],          // おみくじの文字とボタンを出す区間
+    photoStart: 3.3,           // 1枚目の写真が出る位置
+    photoStep: 0.775,          // 写真1枚あたりの長さ
+    closing: 8.45,             // 締めの文字を出す位置
+  },
+  closing: {
+    text: '本年もよろしくお願いいたします',
+    date: '2027年 元旦',
+    from: '佐藤家一同',
+  },
+};
+</script>
+<style>
+:root {
+  /* ===== 色の差し替えはここ ===== */
+  --shu: #d8371f;      /* 朱（鳥居・紅白） */
+  --shu-dark: #9c2010;
+  --kin: #efbf4c;      /* 金 */
+  --yoru: #101a44;     /* 夜明け前の空 */
+  --asa: #fbd49a;      /* 朝の光 */
+  --kami: #fbf6ea;     /* 紙・地の色 */
+  --ki: #d9a866;       /* 額・木札の木 */
+  --ki-dark: #8d5a2b;
+  --sumi: #2a1410;     /* 墨 */
+  --font-display: 'Dela Gothic One', 'Hiragino Kaku Gothic ProN', sans-serif;
+  --font-body: 'Kaisei Decol', 'Hiragino Mincho ProN', serif;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: radial-gradient(rgba(216, 55, 31, .07) 2px, transparent 2.5px) 0 0 / 22px 22px var(--kami);
+  color: var(--sumi);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.8;
+}
+h2 {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 400;
+  font-size: clamp(26px, 7.6vw, 38px); line-height: 1.3;
+  color: var(--shu);
+}
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ==========================================================
+   まず「縦に並んだ静的表示」。JS無効・失敗・reduced-motion はこのまま読める。
+   スクロール連動の配置は、後半の html.scrolly でだけ上書きする。
+   ========================================================== */
+.ly, .only-scrolly { display: none; }
+
+/* ---------- 境内（オープニング） ---------- */
+.hero {
+  position: relative; height: 100vh; height: 100svh; overflow: hidden;
+  background: var(--yoru); color: #fff3d0; text-align: center;
+}
+.hero-blur { /* PC幅で左右にできる余白を、同じ絵のぼかしで埋める */
+  position: absolute; inset: -40px;
+  background: var(--hero-bg, url(img/bg-keidai.jpg)) center / cover;
+  filter: blur(28px) brightness(.55);
+}
+.hero-inner { /* 絵の縦全体が入る幅。スマホ縦では画面いっぱい */
+  position: relative; height: 100%; margin: 0 auto;
+  width: min(100%, 100vh * 844 / 1500); width: min(100%, 100svh * 844 / 1500);
+  container-type: size;
+}
+.hero-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  transform-origin: 50% 72.5%; /* 鳥居のあいだ（初日の位置） */
+}
+.hero-text { position: absolute; left: 0; right: 0; top: 14%; }
+#heroB { top: calc(14% + 68px); top: calc(14% + min(18cqw, 9.6cqh)); }
+.hero h1 {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 400;
+  font-size: 56px; font-size: min(15cqw, 8cqh); line-height: 1.2; letter-spacing: .08em;
+  text-shadow: 0 3px 0 var(--shu-dark), 0 0 22px rgba(16, 26, 68, .8);
+}
+.year {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 100px; font-size: min(27cqw, 14cqh); line-height: 1.05;
+  color: var(--kin);
+  text-shadow: 0 5px 0 var(--shu-dark), 0 0 26px rgba(16, 26, 68, .8);
+}
+.sub { margin: 6px 0 0; font-weight: 700; font-size: 19px; letter-spacing: .3em; text-shadow: 0 0 10px var(--yoru), 0 0 4px var(--yoru); }
+.hint {
+  position: absolute; left: 0; right: 0; bottom: max(22px, env(safe-area-inset-bottom));
+  margin: 0; font-weight: 700; font-size: 16px;
+  text-shadow: 0 0 8px #000, 0 0 16px #000;
+}
+.hint::before { content: "↓ "; font-family: sans-serif; }
+
+/* ---------- おみくじ ---------- */
+.kuji { display: grid; justify-items: center; padding-bottom: 30px; text-align: center; }
+.kouhaku { /* 紅白幕 */
+  justify-self: stretch; height: 30px;
+  background: repeating-linear-gradient(90deg, var(--shu) 0 30px, #fff 30px 60px);
+  border-top: 6px solid var(--kin);
+  box-shadow: 0 4px 0 rgba(42, 20, 16, .12);
+}
+.kuji-head { padding: 18px 16px 0; }
+.kuji-head p { margin: 2px 0 0; }
+.kuji-area {
+  position: relative; width: min(100% - 24px, 430px); height: 450px;
+  display: flex; align-items: flex-end;
+  margin-top: 10px;
+}
+.tube-wrap { position: relative; height: 100%; aspect-ratio: 2 / 3; container-type: size; }
+.tube-shake { width: 100%; height: 100%; transform-origin: 50% 85%; }
+.tube-shake img { display: block; width: 100%; height: 100%; }
+.tube-label { /* 筒の白い札に載せる文字 */
+  position: absolute; left: 50%; top: 57.5%; translate: -50% -50%;
+  writing-mode: vertical-rl;
+  font-family: var(--font-display); font-size: 30px; font-size: 8cqh; line-height: 1; letter-spacing: .12em;
+  color: var(--sumi);
+}
+.is-shaking .tube-shake { animation: shake .7s ease-in-out; }
+@keyframes shake {
+  0%, 100% { transform: rotate(0); }
+  18% { transform: rotate(-13deg) translateY(-6px); }
+  40% { transform: rotate(12deg) translateY(4px); }
+  62% { transform: rotate(-10deg) translateY(-4px); }
+  82% { transform: rotate(6deg); }
+}
+.paper { /* 結果の紙。筒の上に重ねて、いつも同じ場所に出す */
+  position: absolute; inset: 0; margin: auto;
+  width: min(100%, 350px); height: fit-content; max-height: 100%; overflow-y: auto;
+  padding: 14px 20px 18px;
+  background: #fff;
+  border: 6px double var(--shu);
+  box-shadow: 0 10px 24px rgba(42, 20, 16, .28);
+  transform-origin: 50% 0;
+}
+.paper.open { animation: unfold .4s cubic-bezier(.2, .9, .3, 1.1); }
+@keyframes unfold { from { transform: scaleY(.05); opacity: .4; } to { transform: none; opacity: 1; } }
+.paper-no { margin: 0; font-size: 14px; letter-spacing: .3em; color: var(--shu); }
+.paper-luck {
+  margin: 0;
+  font-family: var(--font-display); font-size: clamp(46px, 9vh, 74px); line-height: 1.2;
+  color: var(--shu);
+}
+.paper-word { margin: 0; font-weight: 700; line-height: 1.6; }
+.paper hr, .letter hr { margin: 12px 0 10px; border: 0; border-top: 2px dashed var(--kin); }
+.to { margin: 0; font-weight: 700; font-size: 19px; overflow-wrap: anywhere; }
+.msg { margin: 4px 0 0; text-align: left; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.draw {
+  margin-top: 16px;
+  min-width: min(84vw, 300px); min-height: 66px; padding: 10px 28px;
+  font-family: var(--font-display); font-size: 23px; color: #fff;
+  background: var(--shu);
+  border: 4px solid var(--kin); border-radius: 999px;
+  box-shadow: 0 7px 0 var(--shu-dark);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.draw:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--shu-dark); }
+.draw:focus-visible { outline: 4px solid var(--sumi); outline-offset: 4px; }
+.draw[aria-disabled="true"] { opacity: .65; cursor: default; }
+
+/* ---------- 巫女のひつじ ---------- */
+#miko { width: 140px; margin: 0 auto; }
+#miko img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 3; }
+
+/* ---------- 写真（奉納額） ---------- */
+.album { padding: 34px 12px 40px; text-align: center; }
+.gakus { list-style: none; margin: 0; padding: 0; }
+.gaku { width: min(100%, 720px); margin: 26px auto 0; }
+.gaku figure { margin: 0; }
+.gaku img {
+  display: block; box-sizing: content-box; width: calc(100% - 20px); height: auto; aspect-ratio: 4 / 3; object-fit: cover;
+  background: #d9c3a0;
+  border: 10px solid var(--ki);
+  border-image: linear-gradient(135deg, #e8bf85, var(--ki-dark) 48%, #e2b678 52%, var(--ki-dark)) 10;
+  outline: 2px solid var(--sumi);
+  box-shadow: 0 10px 18px rgba(42, 20, 16, .3);
+}
+.gaku figcaption { /* 木札 */
+  display: grid; place-items: center;
+  width: fit-content; max-width: 100%; min-height: 60px; margin: 14px auto 0; padding: 4px 22px;
+  font-weight: 700; font-size: clamp(18px, 5vw, 23px); line-height: 1.3; text-wrap: balance;
+  background:
+    repeating-linear-gradient(91deg, transparent 0 13px, rgba(120, 70, 20, .1) 13px 15px),
+    linear-gradient(#ecc78f, var(--ki));
+  border: 2px solid var(--sumi);
+  box-shadow: 0 4px 0 rgba(42, 20, 16, .25);
+}
+
+/* ---------- 締め ---------- */
+.closing {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 30px 16px max(20px, env(safe-area-inset-bottom));
+  text-align: center;
+  background: linear-gradient(transparent, var(--asa));
+}
+.closing-img { display: block; width: auto; height: auto; max-width: min(92%, 480px); max-height: 32vh; max-height: 32svh; }
+.closing-body { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.letter {
+  width: min(100%, 420px); max-height: 30vh; max-height: 30svh; overflow-y: auto;
+  margin-top: 10px; padding: 12px 18px 14px;
+  background: #fff; border: 6px double var(--shu);
+}
+.closing-text { margin: 16px 0 0; font-weight: 700; font-size: clamp(19px, 5.4vw, 26px); }
+.closing-sign { margin: 4px 0 0; }
+.closing-sign span { display: inline-block; margin: 0 .5em; }
+.back { display: inline-block; margin-top: 10px; padding: 8px; font-size: 13px; color: var(--sumi); }
+
+/* ==========================================================
+   スクロール連動（JSが最後まで動いたときだけ html.scrolly が付く）
+   画面に貼り付いた1枚のステージの中で、
+   ・写真と文字は決まった場所に出して、その場で切り替える（.fx）
+   ・絵はスクロール量から毎フレーム位置を計算して流す（transform は JS が入れる）
+   ========================================================== */
+html.scrolly #stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+html.scrolly .only-scrolly { display: block; }
+html.scrolly .kouhaku { display: none; }
+html.scrolly h2, html.scrolly .kuji-head p, html.scrolly .closing-text, html.scrolly .closing-sign { text-shadow: 0 0 2px var(--kami), 0 0 6px var(--kami), 0 0 10px var(--kami); }
+
+/* その場で出す・消すもの。時間ベースの不透明度だけ（0.18秒） */
+html.scrolly .fx { opacity: 0; visibility: hidden; transition: opacity .18s linear, visibility 0s .18s; }
+html.scrolly .fx.show { opacity: 1; visibility: visible; transition: opacity .18s linear; }
+
+html.scrolly .hero { position: absolute; inset: 0; height: auto; z-index: 1; }
+html.scrolly .hero.off, html.scrolly .closing.off, html.scrolly .kuji.off .tube-wrap { visibility: hidden; }
+html.scrolly .hero-bg { will-change: transform; }
+html.scrolly #heroB { top: 15%; }
+
+/* 流れる絵の層 */
+html.scrolly .ly { display: block; position: absolute; left: 0; pointer-events: none; will-change: transform; }
+html.scrolly .dawn { inset: 0; z-index: 0; background: linear-gradient(var(--kami) 30%, var(--asa)); opacity: 0; will-change: opacity; }
+html.scrolly .petals { z-index: 2; background-repeat: repeat; opacity: 0; will-change: transform, opacity; }
+html.scrolly .ema { bottom: 0; height: var(--ema-h); z-index: 3; background: repeat-x 0 0 / auto 100%; }
+html.scrolly .lanterns { top: 0; height: var(--band); z-index: 6; }
+html.scrolly .lanterns i { display: block; height: 100%; background: repeat-x 0 0 / auto 100%; animation: sway 3s ease-in-out infinite alternate; }
+@keyframes sway { from { transform: translateY(-2px); } to { transform: translateY(3px); } }
+@keyframes bob { from { transform: translateY(-3px); } to { transform: translateY(3px); } }
+
+html.scrolly .kuji {
+  position: absolute; inset: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: var(--band) 0 max(26px, env(safe-area-inset-bottom));
+}
+html.scrolly .kuji-head { padding-top: 8px; z-index: 8; position: relative; }
+html.scrolly .kuji-area { height: 100%; }
+html.scrolly .tube-wrap { height: min(100%, 450px); z-index: 4; will-change: transform; }
+html.scrolly .paper, html.scrolly .draw { z-index: 8; }
+html.scrolly .draw { position: relative; }
+
+html.scrolly #miko { position: absolute; left: 0; top: 0; margin: 0; z-index: 5; transform-origin: 0 0; will-change: transform; }
+html.scrolly #miko img { animation: bob 1.3s ease-in-out infinite alternate; }
+
+/* 写真は画面の決まった場所。位置と大きさは JS が整数pxで入れる。transform・filter は掛けない */
+html.scrolly .album { position: absolute; inset: 0; padding: 0; z-index: 7; }
+html.scrolly .album-title { position: absolute; left: 0; right: 0; top: calc(var(--band) + 6px); }
+html.scrolly .gakus { position: absolute; }
+html.scrolly .gaku { position: absolute; left: 0; top: 0; width: 100%; margin: 0; opacity: 0; }
+html.scrolly .gaku.prev { opacity: 1; }
+html.scrolly .gaku.cur { opacity: 1; z-index: 1; transition: opacity .18s linear; }
+html.scrolly .gaku img { width: var(--pw); height: var(--ph); aspect-ratio: auto; }
+html.scrolly .gaku figcaption { width: 100%; height: 60px; min-height: 0; }
+
+html.scrolly .closing {
+  position: absolute; inset: 0; justify-content: center;
+  padding-top: var(--band); background: none;
+}
+html.scrolly .closing-img { position: relative; z-index: 3; max-width: none; max-height: none; will-change: transform; }
+html.scrolly .closing-body { position: relative; z-index: 8; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+<script>
+// アプリ内ブラウザ（LINE など）には、CSS の svh が実際の画面の高さより大幅に小さく出るものがある
+// （画面が上半分だけになり、最後まで進めない）。ずれているときだけ、スタイルの svh を実測の高さ（--svh）に置き換える。
+// 合っているブラウザでは何もしない
+(function () {
+  var root = document.documentElement, probe = document.createElement('div'), done = false, last = '';
+  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none';
+  function fix() {
+    root.appendChild(probe);
+    var css = probe.offsetHeight, real = window.innerHeight;
+    root.removeChild(probe);
+    if (!css || !real || (!done && css >= real * 0.75)) return false; // Safari のバーの伸び縮み（1〜2割）は正常の範囲
+    var value = real / 100 + 'px';
+    if (value === last) return false;
+    root.style.setProperty('--svh', last = value);
+    if (!done) {
+      done = true;
+      document.querySelectorAll('style').forEach(function (s) { s.textContent = s.textContent.replace(/(\d*\.?\d+)svh/g, 'calc(var(--svh) * $1)'); });
+    }
+    return true;
+  }
+  fix();
+  addEventListener('resize', fix); // 各テンプレートの resize 処理より先に登録して、先に高さを直す
+  ['load', 'pageshow'].forEach(function (type) { addEventListener(type, function () { if (fix()) dispatchEvent(new Event('resize')); }); });
+})();
+</script>
+</head>
+<body>
+
+<div id="track">
+<div id="stage">
+
+  <header class="hero" id="hero">
+    <div class="hero-blur" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <img class="hero-bg" id="heroBg" src="img/bg-keidai.jpg" alt="" width="844" height="1500">
+      <div class="hero-text fx show" id="heroA">
+        <h1 id="greeting">謹賀新年</h1>
+        <p class="sub only-scrolly" id="subA" aria-hidden="true">2027年 元旦</p>
+      </div>
+      <div class="hero-text fx" id="heroB">
+        <p class="year" id="year">2027</p>
+        <p class="sub" id="sub">未年 元旦</p>
+      </div>
+      <p class="hint fx show" id="hint">スクロールして参道をすすむ</p>
+    </div>
+  </header>
+
+  <!-- 流れる絵（スクロール連動のときだけ出る） -->
+  <div class="ly dawn" id="lyDawn" aria-hidden="true"></div>
+  <div class="ly petals" id="lyPetals" aria-hidden="true"></div>
+  <div class="ly ema" id="lyEma" aria-hidden="true"></div>
+  <div class="ly lanterns" id="lyLanterns" aria-hidden="true"><i></i></div>
+
+  <main>
+    <section class="kuji" id="kuji" aria-labelledby="kujiTitle">
+      <div class="kouhaku" aria-hidden="true"></div>
+      <div class="kuji-head fx">
+        <h2 id="kujiTitle">新春おみくじ</h2>
+        <p id="kujiLead">今年の運勢を、ひとつどうぞ。</p>
+      </div>
+      <div class="kuji-area" id="kujiArea">
+        <div class="tube-wrap" id="tube" aria-hidden="true">
+          <div class="tube-shake">
+            <img id="tubeImg" src="img/omikuji-tube.webp" alt="" width="480" height="720" loading="lazy">
+            <span class="tube-label" id="tubeLabel">御神籤</span>
+          </div>
+        </div>
+        <!-- JSが動かないときはボタンを出さず、この紙をそのまま見せる -->
+        <div class="paper fx" id="paper">
+          <p class="paper-no" id="paperNo">第一番</p>
+          <p class="paper-luck" id="luck">大吉</p>
+          <p class="paper-word" id="word">笑う門には福来る。今年は笑いっぱなしの予感。</p>
+          <hr>
+          <p class="to js-to">田中さん へ</p>
+          <p class="msg js-msg">昨年は大変お世話になりました。今年もぜひ遊びに来てください！</p>
+        </div>
+      </div>
+      <button type="button" class="draw fx" id="draw" hidden>おみくじを引く</button>
+      <p class="sr-only" id="live" role="status" aria-live="polite"></p>
+    </section>
+
+    <div id="miko" aria-hidden="true"><img id="mikoImg" src="img/hitsuji-miko.webp" alt="" width="480" height="720" loading="lazy"></div>
+
+    <section class="album fx" id="album" aria-labelledby="albumTitle">
+      <h2 class="album-title" id="albumTitle">佐藤家の2026年</h2>
+      <ol class="gakus" id="gakus">
+        <li class="gaku"><figure>
+          <img src="../shared/photos/p1.jpg" alt="" width="1200" height="900" loading="lazy">
+          <figcaption>春、みんなでお花見</figcaption>
+        </figure></li>
+        <li class="gaku"><figure>
+          <img src="../shared/photos/p2.jpg" alt="" width="1200" height="900" loading="lazy">
+          <figcaption>夏の海で砂のお城づくり</figcaption>
+        </figure></li>
+        <li class="gaku"><figure>
+          <img src="../shared/photos/p3.jpg" alt="" width="1200" height="900" loading="lazy">
+          <figcaption>夏祭り、はじめての手持ち花火</figcaption>
+        </figure></li>
+        <li class="gaku"><figure>
+          <img src="../shared/photos/p4.jpg" alt="" width="1200" height="900" loading="lazy">
+          <figcaption>運動会、最後まで走りきったよ</figcaption>
+        </figure></li>
+        <li class="gaku"><figure>
+          <img src="../shared/photos/p5.jpg" alt="" width="1200" height="900" loading="lazy">
+          <figcaption>3歳のお誕生日おめでとう</figcaption>
+        </figure></li>
+        <li class="gaku"><figure>
+          <img src="../shared/photos/p6.jpg" alt="" width="1200" height="900" loading="lazy">
+          <figcaption>雪の日、大きな雪だるま</figcaption>
+        </figure></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="closing" id="closing">
+    <img class="closing-img" id="closingImg" src="img/shime-saisen.webp" alt="" width="900" height="600" loading="lazy">
+    <div class="closing-body fx">
+      <div class="letter">
+        <p class="to js-to">田中さん へ</p>
+        <p class="msg js-msg">昨年は大変お世話になりました。今年もぜひ遊びに来てください！</p>
+      </div>
+      <p class="closing-text" id="endText">本年もよろしくお願いいたします</p>
+      <p class="closing-sign"><span id="endDate">2027年 元旦</span><span id="endFrom">佐藤家一同</span></p>
+      <a class="back" href="../">← サンプル一覧へ</a>
+    </div>
+  </footer>
+
+</div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const fill = (selector, text) => document.querySelectorAll(selector).forEach((el) => { el.textContent = text; });
+  const query = new URLSearchParams(location.search);
+  const param = (key, fallback, max) => (query.get(key) || '').trim().slice(0, max) || fallback;
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const K = CONFIG.omikuji;
+  const IMG = CONFIG.images;
+
+  // ---------- 文言（すべて textContent） ----------
+  $('greeting').textContent = CONFIG.greeting;
+  $('year').textContent = CONFIG.year;
+  $('sub').textContent = CONFIG.sub;
+  $('subA').textContent = CONFIG.closing.date;
+  $('hint').textContent = CONFIG.hint;
+  $('kujiTitle').textContent = K.title;
+  $('kujiLead').textContent = K.lead;
+  $('tubeLabel').textContent = K.label;
+  $('albumTitle').textContent = CONFIG.albumTitle;
+  $('endText').textContent = CONFIG.closing.text;
+  $('endDate').textContent = CONFIG.closing.date;
+  $('endFrom').textContent = CONFIG.closing.from;
+
+  const to = param('to', CONFIG.defaultTo, 40) + CONFIG.toSuffix;
+  const msg = param('msg', CONFIG.defaultMsg, 300);
+  fill('.js-to', to);
+  fill('.js-msg', msg);
+
+  // ---------- 画像 ----------
+  const hero = $('hero');
+  const heroBg = $('heroBg');
+  if (heroBg.getAttribute('src') !== IMG.bg) heroBg.src = IMG.bg;
+  hero.style.setProperty('--hero-bg', 'url("' + encodeURI(IMG.bg) + '")');
+  const gakus = [...document.querySelectorAll('.gaku')];
+  const photoImgs = gakus.map((g) => g.querySelector('img'));
+  // 遅延させる画像: [要素, パス]。スクロール連動のときは src を外しておき、近づいたら入れる
+  const later = [[$('tubeImg'), IMG.tube], [$('mikoImg'), IMG.miko], [$('closingImg'), IMG.closing]];
+  gakus.forEach((g, i) => {
+    const photo = CONFIG.photos[i];
+    if (!photo) return;
+    g.querySelector('figcaption').textContent = photo.caption;
+    later.push([photoImgs[i], photo.src]);
+  });
+  const load = (img) => { if (img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; } };
+  later.forEach(([img, src]) => {
+    if (reduced) { if (img.getAttribute('src') !== src) img.src = src; return; }
+    img.removeAttribute('src');
+    img.loading = 'eager';
+    img.dataset.src = src;
+  });
+
+  // ---------- おみくじ（ボタンを押したときだけ筒が動く。スクロール位置には触らない） ----------
+  const section = $('kuji');
+  const button = $('draw');
+  const paper = $('paper');
+  let busy = false;
+
+  const reveal = (fortune) => {
+    const word = pick(fortune.words);
+    $('paperNo').textContent = '第' + pick(K.numbers) + '番';
+    $('luck').textContent = fortune.name;
+    $('word').textContent = word;
+    paper.hidden = false;
+    paper.classList.add('open');
+    $('live').textContent = fortune.name + '。' + word + ' ' + to + '。' + msg;
+    button.textContent = K.again;
+    button.removeAttribute('aria-disabled');
+    busy = false;
+  };
+
+  button.addEventListener('click', () => {
+    if (busy) return;
+    busy = true;
+    const fortune = pick(K.fortunes);
+    paper.hidden = true;
+    paper.classList.remove('open');
+    $('live').textContent = '';
+    if (reduced) {
+      reveal(fortune);
+      return;
+    }
+    button.setAttribute('aria-disabled', 'true');
+    section.classList.add('is-shaking');
+    setTimeout(() => {
+      section.classList.remove('is-shaking');
+      reveal(fortune);
+    }, 750);
+  });
+
+  button.textContent = K.draw;
+  paper.hidden = true;
+  button.hidden = false;
+
+  if (reduced) return; // 動きを減らす設定では、縦に並んだ静的表示のまま
+
+  // ---------- スクロール連動 ----------
+  const T = CONFIG.scroll;
+  const root = document.documentElement;
+  const stage = $('stage');
+  const tube = $('tube');
+  const miko = $('miko');
+  const closing = $('closing');
+  const closingImg = $('closingImg');
+  const lyDawn = $('lyDawn');
+  const lyPetals = $('lyPetals');
+  const lyEma = $('lyEma');
+  const lyLanterns = $('lyLanterns');
+  const album = $('album');
+  const kujiFx = [...section.querySelectorAll('.fx')];
+  const closingBody = closing.querySelector('.closing-body');
+
+  const clamp01 = (v) => Math.min(1, Math.max(0, v));
+  const span = (s, a, b) => clamp01((s - a) / (b - a));       // a→b の区間を 0→1 に
+  const ease = (t) => t * t * (3 - 2 * t);                    // 位置の道のりをなめらかに（時間の遅れではない）
+  const mix = (a, b, t) => a + (b - a) * t;
+  const wrap = (v, m) => ((v % m) + m) % m;
+  const flags = new Map(); // クラスの付け外しは、変わったときだけ
+  const toggle = (el, name, on) => {
+    let f = flags.get(el);
+    if (!f) flags.set(el, (f = {}));
+    if (f[name] === on) return;
+    f[name] = on;
+    el.classList.toggle(name, on);
+  };
+
+  root.classList.add('scrolly');
+  lyLanterns.firstElementChild.style.backgroundImage = 'url("' + encodeURI(IMG.lanterns) + '")';
+
+  let W = 0, H = 0, G = null; // G: 画面サイズから決まる配置
+  const layout = () => {
+    W = stage.clientWidth;
+    H = stage.clientHeight;
+    $('track').style.height = (T.length + 1) * H + 'px'; // 舞台の実寸から決める（svh 非対応のブラウザでも、高さ補正が入ったときでも合う）
+    const band = Math.round(Math.min(H * 0.13, 110));  // 上を流れる提灯の帯
+    const emaH = Math.round(Math.min(H * 0.18, 150));  // 下を流れる絵馬掛け
+    root.style.setProperty('--band', band + 'px');
+    root.style.setProperty('--ema-h', emaH + 'px');
+    const lanternTile = band * 3, emaTile = emaH * 3, petalTile = Math.round(Math.min(760, Math.max(520, W * 0.6)));
+    lyLanterns.style.width = W + lanternTile + 'px';
+    lyEma.style.width = W + emaTile + 'px';
+    Object.assign(lyPetals.style, {
+      top: -petalTile + 'px', width: W + petalTile + 'px', height: H + petalTile + 'px',
+      backgroundSize: petalTile + 'px ' + petalTile + 'px',
+    });
+
+    // 奉納額: 写真は4の倍数px幅（高さも整数になる）、左上も整数px
+    const frame = 10, plaque = 60, gap = 14;
+    const topY = band + 58, bottomY = H - Math.round(emaH * 0.85);
+    const pw = Math.max(160, Math.floor(Math.min(W - 24 - frame * 2, (bottomY - topY - plaque - gap - frame * 2 - 12) * 4 / 3, 880) / 4) * 4);
+    const ph = pw * 3 / 4;
+    const blockH = ph + frame * 2 + gap + plaque;
+    const box = $('gakus');
+    box.style.left = Math.floor((W - pw - frame * 2) / 2) + 'px';
+    box.style.top = Math.round(topY + Math.max(0, bottomY - topY - blockH) / 2) + 'px';
+    box.style.width = pw + frame * 2 + 'px';
+    box.style.height = blockH + 'px';
+    box.style.setProperty('--pw', pw + 'px');
+    box.style.setProperty('--ph', ph + 'px');
+
+    // 巫女の立ち位置（おみくじの横 → 写真の左下 → 賽銭箱の横）
+    const area = $('kujiArea');
+    const ax = area.offsetLeft, ay = area.offsetTop, aw = area.offsetWidth, ah = area.offsetHeight;
+    const mh = Math.round(ah * 0.42), mw = mh * 2 / 3;
+    miko.style.width = mw + 'px';
+    // 締めの絵は、読み込み前でも場所が決まるように大きさを先に入れる（3:2）
+    const closingW = Math.round(Math.min(W * 0.72, 440, H * 0.3 * 1.5));
+    const endH = closingW * 2 / 3 * 0.82, endW = endH * 2 / 3; // 締めでの巫女の大きさ
+    closingImg.style.width = closingW + 'px';
+    closingImg.style.height = Math.round(closingW * 2 / 3) + 'px';
+    closingImg.style.marginLeft = Math.round(endW * 0.8) + 'px'; // 左に巫女が立つぶん、絵を右へ寄せる
+    const cx = closingImg.offsetLeft, cy = closingImg.offsetTop, cw = closingImg.offsetWidth, ch = closingImg.offsetHeight;
+    const ph2 = emaH * 1.25;
+    G = {
+      lanternTile, emaTile, petalTile, emaH, mh,
+      tubeOut: ax + tube.offsetWidth + 24,
+      mikoIn: { x: W + 12, y: ay + ah - mh, k: 1 },
+      mikoKuji: { x: ax + aw - mw * 0.94 + aw * 0.04, y: ay + ah - mh, k: 1 },
+      mikoPhoto: { x: 4, y: H - ph2 - 2, k: ph2 / mh },
+      mikoEnd: { x: cx - endW * 0.92, y: cy + ch - endH + 4, k: endH / mh },
+      closingRise: H - cy,
+    };
+  };
+
+  let current = -1;
+  const showPhoto = (i) => {
+    if (i === current) return;
+    gakus.forEach((g, n) => {
+      g.classList.toggle('prev', n === current);
+      g.classList.toggle('cur', n === i);
+    });
+    current = i;
+  };
+
+  const update = () => {
+    ticking = false;
+    const s = Math.min(T.length, Math.max(0, window.scrollY / H)); // 画面何枚ぶん進んだか
+
+    // 画像は近づいたものから（一斉には読まない）
+    if (s > 0.4) {
+      load($('tubeImg')); load($('mikoImg'));
+      if (!lyPetals.style.backgroundImage) lyPetals.style.backgroundImage = 'url("' + encodeURI(IMG.petals) + '")';
+    }
+    if (s > 2.0 && !lyEma.style.backgroundImage) lyEma.style.backgroundImage = 'url("' + encodeURI(IMG.ema) + '")';
+    if (s > T.closing - 1.6) load(closingImg);
+
+    // 1. 鳥居へ近づいて、くぐる
+    const walk = span(s, 0, T.heroEnd);
+    toggle(hero, 'off', s >= T.heroEnd);
+    heroBg.style.transform = 'scale(' + (1 + 5 * walk * walk).toFixed(4) + ')';
+    hero.style.opacity = (1 - span(s, T.heroEnd - 0.45, T.heroEnd)).toFixed(3);
+    toggle($('heroA'), 'show', s < T.heroSwitch);
+    toggle($('heroB'), 'show', s >= T.heroSwitch && s < T.heroEnd - 0.55);
+    toggle($('hint'), 'show', s < 0.25);
+
+    // 2. 上を流れる提灯、舞う花びら（最後まで流れ続ける）
+    const drop = (ease(span(s, 0.3, 0.8)) - 1) * (G.lanternTile / 3 + 8);
+    lyLanterns.style.transform = 'translate3d(' + (-wrap(s * W * 0.3, G.lanternTile)).toFixed(2) + 'px,' + drop.toFixed(2) + 'px,0)';
+    lyPetals.style.opacity = (span(s, 0.8, 1.5) * 0.5).toFixed(3); // 文字のじゃまをしない濃さ
+    lyPetals.style.transform = 'translate3d(' + (-wrap(s * 70, G.petalTile)).toFixed(2) + 'px,' + wrap(s * H * 0.3, G.petalTile).toFixed(2) + 'px,0)';
+
+    // 3. おみくじ: 筒が左から、巫女が右から流れ込む
+    const tubeIn = ease(span(s, 1.3, 1.9)), tubeAway = ease(span(s, T.kuji[1] - 0.05, T.kuji[1] + 0.35));
+    toggle(section, 'off', s < 1.25 || s > T.kuji[1] + 0.4);
+    tube.style.transform = 'translate3d(' + (-(1 - tubeIn + tubeAway) * G.tubeOut).toFixed(2) + 'px,0,0)';
+    const kujiOn = s >= T.kuji[0] && s < T.kuji[1];
+    kujiFx.forEach((el) => toggle(el, 'show', kujiOn));
+
+    // 巫女は、おみくじ → 写真 → 締めと、ずっと付いてくる
+    let a = G.mikoIn, b = G.mikoKuji, t = ease(span(s, 1.4, 1.9));
+    if (s > T.closing - 0.55) { a = G.mikoPhoto; b = G.mikoEnd; t = ease(span(s, T.closing - 0.55, T.closing)); }
+    else if (s > T.kuji[1] - 0.05) { a = G.mikoKuji; b = G.mikoPhoto; t = ease(span(s, T.kuji[1] - 0.05, T.kuji[1] + 0.35)); }
+    miko.style.transform = 'translate3d(' + mix(a.x, b.x, t).toFixed(2) + 'px,' + mix(a.y, b.y, t).toFixed(2) + 'px,0) scale(' + mix(a.k, b.k, t).toFixed(4) + ')';
+
+    // 4. 写真: 額は動かさない。区切りを越えたら、その場で入れ替える
+    const photosEnd = T.photoStart + T.photoStep * gakus.length;
+    const index = Math.min(gakus.length - 1, Math.max(0, Math.floor((s - T.photoStart) / T.photoStep)));
+    if (s > T.photoStart - 1) {
+      load(photoImgs[index]);
+      if (photoImgs[index + 1]) load(photoImgs[index + 1]);
+    }
+    showPhoto(index);
+    toggle(album, 'show', s >= T.photoStart && s < photosEnd);
+    //    そのまわりで、絵馬掛けが下を流れる
+    const emaIn = ease(span(s, T.kuji[1] - 0.05, T.photoStart)), emaAway = ease(span(s, photosEnd - 0.05, photosEnd + 0.4));
+    lyEma.style.transform = 'translate3d(' + (-wrap((s - T.kuji[1]) * W * 0.55, G.emaTile)).toFixed(2) + 'px,' + ((1 - emaIn + emaAway) * (G.emaH + 10)).toFixed(2) + 'px,0)';
+
+    // 5. 締め: 朝の色になり、賽銭箱と初日が下から昇ってくる
+    toggle(closing, 'off', s < photosEnd - 0.1);
+    lyDawn.style.opacity = span(s, photosEnd - 0.4, T.closing).toFixed(3);
+    closingImg.style.transform = 'translate3d(0,' + ((1 - ease(span(s, photosEnd - 0.05, T.closing))) * G.closingRise).toFixed(2) + 'px,0)';
+    toggle(closingBody, 'show', s >= T.closing);
+  };
+
+  let ticking = false;
+  const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', () => { layout(); request(); });
+  layout();
+  update();
+})();
+</script>
+</body>
+</html>

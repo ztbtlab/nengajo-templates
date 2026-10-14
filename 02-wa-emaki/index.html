@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>謹賀新年 2027 ｜ 新春絵巻</title>
+
+<script>
+/* ============================================================
+   差し替えはここだけ（文言・写真）。色は下の :root のCSS変数、
+   絵と地紋は img/ の画像（daiji / musubi / toyama / ryusui / k-* / washi / kire）。
+   宛名とメッセージは URL の ?to= と ?msg= が優先されます。
+   ============================================================ */
+const CONFIG = {
+  greeting: '謹賀新年',
+  year: '2027',
+  eto: '未',
+  to: '田中さん',
+  msg: '昨年は大変お世話になりました。今年もぜひ遊びに来てください！',
+  photos: [
+    { src: '../shared/photos/p1.jpg', caption: '春、みんなでお花見' },
+    { src: '../shared/photos/p2.jpg', caption: '夏の海で砂のお城づくり' },
+    { src: '../shared/photos/p3.jpg', caption: '夏祭り、はじめての手持ち花火' },
+    { src: '../shared/photos/p4.jpg', caption: '運動会、最後まで走りきったよ' },
+    { src: '../shared/photos/p5.jpg', caption: '3歳のお誕生日おめでとう' },
+    { src: '../shared/photos/p6.jpg', caption: '雪の日、大きな雪だるま' }
+  ],
+  closing: '本年もよろしくお願いいたします',
+  date: '2027年 元旦',
+  family: '佐藤家一同'
+};
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  /* 色 */
+  --washi: #f3ecdc;      /* 生成りの和紙（画像が読めないときの地色） */
+  --washi-koi: #e6dcc3;  /* 表装の天地 */
+  --shikishi: #fbf8ef;   /* 便箋・短冊の白 */
+  --sumi: #22201d;       /* 墨 */
+  --sumi-usu: #6d665b;   /* 薄墨 */
+  --shu: #c2402a;        /* 朱 */
+  --kin: #b08d3c;        /* 金 */
+  --kin-usu: #d9c48a;    /* 淡い金 */
+  --kire: #6f2a22;       /* 表装の裂（画像が読めないときの色） */
+  --kei: rgba(176, 141, 60, .4); /* 便箋の罫 */
+
+  --font: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+
+  /* 寸法（絵巻モードでは JS が整数pxで上書きする） */
+  --vh: 1vh;
+  --ph: min(100vw - 7rem, calc(56 * var(--vh)), 640px); /* 写真の幅（4:3で全体を見せる） */
+  --pt: calc(var(--ph) * .3);  /* 掛け軸の天 */
+  --pb: calc(var(--ph) * .2);  /* 掛け軸の地 */
+  --yoko: 8px;                 /* 掛け軸の左右 */
+  --nuno: 10px;                /* 中廻しの左右 */
+  --seg: 0px;                  /* 1場面ぶんの絵巻の送り量 */
+}
+@supports (height: 1svh) { :root { --vh: 1svh; } }
+@media (max-width: 600px) {
+  :root { --ph: min(100vw - 3rem, calc(50 * var(--vh))); --pt: calc(var(--ph) * .26); --pb: calc(var(--ph) * .24); --yoko: 5px; --nuno: 6px; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--sumi);
+  color: var(--sumi);
+  font-family: var(--font);
+  font-weight: 500;
+  line-height: 1.9;
+}
+h1, p, figure { margin: 0; }
+img { display: block; }
+.tate { writing-mode: vertical-rl; }
+.upright { text-orientation: upright; }
+
+/* ============================================================
+   既定の姿: 縦に並んだ静的表示（JS無効・動きを減らす設定のとき）
+   ============================================================ */
+.stage {
+  position: relative;
+  border-block: 12px solid var(--sumi);
+  background: var(--washi) url(img/washi.jpg) 0 0 / 640px 640px;
+  box-shadow: inset 0 2px 0 var(--kin), inset 0 -2px 0 var(--kin);
+  overflow: hidden;
+}
+.nagare { display: none; }
+.sc { position: relative; }
+.e { /* 生成した絵。切れている側の端は紙へなじませる */
+  position: absolute;
+  width: auto;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%);
+  mask-image: linear-gradient(to right, transparent, #000 7%);
+  pointer-events: none;
+  user-select: none;
+}
+.e-daiji { right: max(0px, calc(50% - 320px)); bottom: 0; height: min(92%, 142vw); transform: scaleX(-1); }
+.e-musubi { left: max(18px, calc(50% - 320px)); top: 0; height: min(82%, 118vw); }
+
+/* ---------- 一、題字 ---------- */
+.sc-open, .sc-close { min-height: calc(100 * var(--vh) - 24px); }
+.daiji {
+  position: absolute;
+  left: max(11%, calc(50% - 250px));
+  top: 7%;
+  display: flex; /* 縦書きなので上から下へ並ぶ */
+  gap: .9rem;
+}
+.daiji h1 {
+  font-size: clamp(2.6rem, calc(10 * var(--vh)), 5.4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: .12em;
+}
+.nen {
+  display: flex;
+  align-items: center;
+  gap: .7em;
+  padding-top: 1em;
+  font-size: clamp(1rem, calc(2.5 * var(--vh)), 1.3rem);
+  letter-spacing: .3em;
+}
+.hanko { /* 落款 */
+  display: inline-grid;
+  place-items: center;
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 14% 20% 16% 22%;
+  background: var(--shu);
+  color: var(--washi);
+  font-size: 1.15em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  writing-mode: horizontal-tb;
+  box-shadow: inset 0 0 0 2px var(--shu), inset 0 0 0 3px rgba(244, 238, 223, .75);
+}
+.hint { display: none; }
+
+/* ---------- 二、手紙 ---------- */
+.sc-letter { display: flex; justify-content: center; padding: 4rem .75rem; }
+.binsen { /* 便箋 */
+  max-width: 100%;
+  padding: 1.8rem 1.5rem;
+  background: var(--shikishi);
+  box-shadow: inset 0 0 0 4px var(--shikishi), inset 0 0 0 5px var(--kin-usu), 0 14px 26px -16px rgba(34, 32, 29, .6);
+}
+.tegami {
+  height: min(calc(60 * var(--vh)), 30rem);
+  max-width: 100%;
+  overflow-x: auto; /* 想定外に長いときの逃げ道 */
+  font-size: clamp(1.05rem, calc(2.6 * var(--vh)), 1.3rem);
+}
+.atena {
+  margin-block-end: 1.2em;
+  font-size: 1.45em;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+.atena .he { font-size: .7em; font-weight: 500; margin-inline-start: .6em; }
+.msg {
+  line-height: 2.4;
+  letter-spacing: .12em;
+  white-space: pre-line;
+  line-break: strict;
+  overflow-wrap: anywhere;
+  background-image: repeating-linear-gradient(to left, transparent 0 calc(2.4em - 1px), var(--kei) calc(2.4em - 1px) 2.4em);
+}
+.tegami.is-long { height: min(calc(70 * var(--vh)), 36rem); font-size: clamp(.78rem, calc(1.8 * var(--vh)), .92rem); }
+.tegami.is-long .atena { margin-block-end: .8em; }
+.tegami.is-long .msg { line-height: 1.7; letter-spacing: .04em; background-image: none; }
+.tegami.is-long .yori { margin-block-start: .6em; }
+.yori {
+  margin-block-start: 1.2em;
+  text-align: end;
+  font-size: .9em;
+  letter-spacing: .2em;
+  color: var(--sumi-usu);
+}
+
+/* ---------- 三、写真（掛け軸。写真と枠は動かさない・回さない） ---------- */
+.fig { display: flex; justify-content: center; padding: 3.5rem 0; }
+.mount {
+  position: relative;
+  padding: var(--pt) var(--yoko) var(--pb);
+  background: var(--washi-koi);
+  box-shadow: 0 14px 26px -16px rgba(34, 32, 29, .6), inset 0 0 0 1px rgba(176, 141, 60, .35);
+}
+.nuno { /* 中廻し（金襴） */
+  padding: 26px var(--nuno);
+  background: var(--kire) url(img/kire.jpg) center / 230px 230px;
+}
+.photo {
+  width: var(--ph);
+  aspect-ratio: 4 / 3;
+  background: var(--washi-koi);
+  box-shadow: 0 -5px 0 var(--kin), 0 5px 0 var(--kin), 0 0 0 1px var(--kin-usu); /* 一文字 */
+  overflow: hidden;
+}
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--washi-koi);
+}
+.photo img.is-missing { visibility: hidden; }
+.mount::before { /* 掛け緒 */
+  content: "";
+  position: absolute;
+  left: 33%;
+  bottom: 100%;
+  width: 34%;
+  height: 22px;
+  background:
+    linear-gradient(to top right, transparent calc(50% - .7px), var(--sumi-usu) calc(50% - .7px) calc(50% + .7px), transparent calc(50% + .7px)) left / 50% 100% no-repeat,
+    linear-gradient(to top left, transparent calc(50% - .7px), var(--sumi-usu) calc(50% - .7px) calc(50% + .7px), transparent calc(50% + .7px)) right / 50% 100% no-repeat;
+}
+.mount::after { /* 軸棒 */
+  content: "";
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  bottom: -6px;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--kin) 0 9px, var(--sumi) 9px calc(100% - 9px), var(--kin) calc(100% - 9px));
+}
+.fig figcaption { /* 詞書: 掛け軸の左に下げた短冊 */
+  position: absolute;
+  right: calc(100% + 14px);
+  top: var(--pt);
+  padding: 1em .5em;
+  background: var(--shikishi);
+  box-shadow: inset 0 0 0 1px var(--kin-usu), 0 8px 16px -12px rgba(34, 32, 29, .6);
+  font-size: clamp(.95rem, calc(2.2 * var(--vh)), 1.1rem);
+  letter-spacing: .22em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.fig figcaption::before {
+  content: "◆";
+  margin-inline-end: .6em;
+  font-size: .6em;
+  color: var(--shu);
+}
+@media (max-width: 600px) { /* スマホ縦: 詞書は掛け軸の地（下の余白）に横書きで1行 */
+  .fig figcaption {
+    writing-mode: horizontal-tb;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    height: var(--pb);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    box-shadow: none;
+    letter-spacing: .12em;
+  }
+}
+
+/* ---------- 四、結び ---------- */
+.musubi {
+  position: absolute;
+  right: max(12%, calc(50% - 280px));
+  top: 9%;
+  height: min(calc(64 * var(--vh)), 34rem);
+}
+.musubi .closing {
+  font-size: clamp(1.2rem, calc(3.3 * var(--vh)), 1.7rem);
+  font-weight: 700;
+  letter-spacing: .14em;
+  line-height: 1.4;
+}
+.date, .shomei {
+  margin-block-start: 1.1rem;
+  text-align: end;
+  font-size: clamp(1rem, calc(2.5 * var(--vh)), 1.2rem);
+  letter-spacing: .24em;
+}
+.date { padding-bottom: 5.2em; }
+.shomei .hanko { margin-inline-start: .8em; }
+.modoru {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4.5%;
+  text-align: center;
+  font-size: .8rem;
+  letter-spacing: .1em;
+}
+.modoru a { color: var(--sumi); text-decoration: none; border-bottom: 1px solid var(--kin); padding: 0 .4em 2px; background: rgba(243, 236, 220, .8); }
+.modoru a:hover, .modoru a:focus-visible { color: var(--shu); }
+
+/* ============================================================
+   絵巻モード（JSが動き、動きを減らす設定でないとき）
+   ・絵巻（和紙と絵）は縦スクロールに合わせて右へ流れつづける
+   ・写真・詞書・文字は画面の決まった場所から動かず、その場で入れ替わる
+   ============================================================ */
+.is-emaki .stage {
+  position: sticky;
+  top: 0;
+  height: calc(100 * var(--vh));
+  border: 0;
+  background: var(--sumi);
+  box-shadow: none;
+}
+.is-emaki .e-static { display: none; }
+
+/* 流れる絵巻 */
+.is-emaki .nagare {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0; /* 右端から読みはじめる */
+  height: 100%;
+  border-block: 12px solid var(--sumi);
+  background: var(--washi) url(img/washi.jpg) 0 0 / 640px 640px;
+  box-shadow: inset 0 2px 0 var(--kin), inset 0 -2px 0 var(--kin);
+  will-change: transform;
+}
+.nagare .e-daiji { right: max(0px, calc(50vw - 320px)); }   /* 帯の中では画面幅を基準に置く */
+.nagare .e-musubi { left: max(18px, calc(50vw - 320px)); }
+.n-obi { /* 横に続く帯の絵（遠山と霞、流水）。場面の文字に掛からない区間だけ流す */
+  position: absolute;
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 120px, #000 calc(100% - 120px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 120px, #000 calc(100% - 120px), transparent);
+}
+.n-toyama {
+  top: 4%;
+  height: calc(16 * var(--vh));
+  right: calc(100vw + var(--seg));
+  width: calc(7 * var(--seg) - 100vw);
+  background-image: url(img/toyama.webp);
+}
+.n-ryusui {
+  bottom: 1.5%;
+  height: calc(8 * var(--vh));
+  right: 100vw;
+  width: calc(8 * var(--seg) - 100vw);
+  background-image: url(img/ryusui.webp);
+  opacity: .85;
+}
+.n-k { /* 季節の草花。写真 j 枚目の場面の中ほどで画面中央の下を通る */
+  position: absolute;
+  bottom: calc(4.5 * var(--vh));
+  height: calc(18 * var(--vh));
+  width: auto;
+  right: calc(50vw + (var(--j) + 2.5) * var(--seg));
+  transform: translateX(50%);
+}
+.jiku { /* 巻き終わりの軸 */
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  background: linear-gradient(90deg, #17150f, #4a3d2a 45%, #17150f);
+  border-block: 18px solid var(--kin);
+}
+
+/* 固定の場面: 入れ替えは 0.18 秒の不透明度だけ（時間ベース）。
+   去る側は 0.18 秒そのまま残り、来る側が上に重なって現れるので、枠は途切れない */
+.is-emaki .sc, .is-emaki .fig {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 1;
+  transition: opacity 0s .18s, visibility 0s .18s;
+}
+.is-emaki .sc.is-on, .is-emaki .fig.is-on {
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+  transition: opacity .18s linear;
+}
+.is-emaki .sc-letter { display: flex; align-items: center; justify-content: center; padding: 0 .75rem; }
+.is-emaki .fig { display: block; }
+.is-emaki .mount { position: absolute; left: var(--fx); top: var(--fy); } /* 整数pxの固定位置 */
+.is-emaki .photo img { display: none; }           /* 一斉に読み込まない */
+.is-emaki .photo img.is-near { display: block; }  /* いまの1枚と前後だけ */
+.is-emaki .hint {
+  display: block;
+  position: absolute;
+  left: max(5%, calc(50% - 290px));
+  bottom: 3.5%;
+  padding: .15em .9em;
+  border-block: 1px solid var(--kin);
+  font-size: .8rem;
+  letter-spacing: .2em;
+  background: rgba(243, 236, 220, .85);
+}
+</style>
+<script>
+// アプリ内ブラウザ（LINE など）には、CSS の svh が実際の画面の高さより大幅に小さく出るものがある
+// （画面が上半分だけになり、最後まで進めない）。ずれているときだけ、スタイルの svh を実測の高さ（--svh）に置き換える。
+// 合っているブラウザでは何もしない
+(function () {
+  var root = document.documentElement, probe = document.createElement('div'), done = false, last = '';
+  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none';
+  function fix() {
+    root.appendChild(probe);
+    var css = probe.offsetHeight, real = window.innerHeight;
+    root.removeChild(probe);
+    if (!css || !real || (!done && css >= real * 0.75)) return false; // Safari のバーの伸び縮み（1〜2割）は正常の範囲
+    var value = real / 100 + 'px';
+    if (value === last) return false;
+    root.style.setProperty('--svh', last = value);
+    if (!done) {
+      done = true;
+      document.querySelectorAll('style').forEach(function (s) { s.textContent = s.textContent.replace(/(\d*\.?\d+)svh/g, 'calc(var(--svh) * $1)'); });
+    }
+    return true;
+  }
+  fix();
+  addEventListener('resize', fix); // 各テンプレートの resize 処理より先に登録して、先に高さを直す
+  ['load', 'pageshow'].forEach(function (type) { addEventListener(type, function () { if (fix()) dispatchEvent(new Event('resize')); }); });
+})();
+</script>
+</head>
+<body>
+
+<main id="emaki">
+  <div class="stage" id="stage">
+
+    <!-- 流れる絵巻（絵だけ。絵巻モードのときに表示） -->
+    <div class="nagare" id="nagare" aria-hidden="true">
+      <div class="n-obi n-toyama"></div>
+      <div class="n-obi n-ryusui"></div>
+      <img class="e e-daiji" src="img/daiji.webp" width="1024" height="1536" alt="">
+      <img class="n-k" style="--j:0" src="img/k-sakura.webp" width="342" height="420" alt="" loading="lazy">
+      <img class="n-k" style="--j:1" src="img/k-asagao.webp" width="306" height="420" alt="" loading="lazy">
+      <img class="n-k" style="--j:2" src="img/k-hozuki.webp" width="313" height="420" alt="" loading="lazy">
+      <img class="n-k" style="--j:3" src="img/k-momiji.webp" width="374" height="420" alt="" loading="lazy">
+      <img class="n-k" style="--j:4" src="img/k-kiku.webp" width="420" height="420" alt="" loading="lazy">
+      <img class="n-k" style="--j:5" src="img/k-tsubaki.webp" width="360" height="420" alt="" loading="lazy">
+      <img class="e e-musubi" src="img/musubi.webp" width="1024" height="1536" alt="" loading="lazy">
+      <div class="jiku"></div>
+    </div>
+
+    <!-- 一、題字 -->
+    <section class="sc sc-open is-on">
+      <img class="e e-daiji e-static" src="img/daiji.webp" width="1024" height="1536" alt="">
+      <div class="daiji tate">
+        <h1 data-t="greeting">謹賀新年</h1>
+        <p class="nen"><span><span class="upright" data-t="year">2027</span>年</span><span class="hanko" data-t="eto">未</span></p>
+      </div>
+      <p class="hint">↓ スクロールで絵巻をひもとく</p>
+    </section>
+
+    <!-- 二、手紙 -->
+    <section class="sc sc-letter">
+      <div class="binsen">
+        <div class="tegami tate" id="tegami">
+          <p class="atena"><span id="to">田中さん</span><span class="he">へ</span></p>
+          <p class="msg" id="msg">昨年は大変お世話になりました。今年もぜひ遊びに来てください！</p>
+          <p class="yori" data-t="family">佐藤家一同</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 三、写真 -->
+    <figure class="fig">
+      <div class="mount"><div class="nuno"><div class="photo"><img src="../shared/photos/p1.jpg" alt="春、みんなでお花見" width="1200" height="900" loading="lazy"></div></div>
+      <figcaption class="tate">春、みんなでお花見</figcaption></div>
+    </figure>
+    <figure class="fig">
+      <div class="mount"><div class="nuno"><div class="photo"><img src="../shared/photos/p2.jpg" alt="夏の海で砂のお城づくり" width="1200" height="900" loading="lazy"></div></div>
+      <figcaption class="tate">夏の海で砂のお城づくり</figcaption></div>
+    </figure>
+    <figure class="fig">
+      <div class="mount"><div class="nuno"><div class="photo"><img src="../shared/photos/p3.jpg" alt="夏祭り、はじめての手持ち花火" width="1200" height="900" loading="lazy"></div></div>
+      <figcaption class="tate">夏祭り、はじめての手持ち花火</figcaption></div>
+    </figure>
+    <figure class="fig">
+      <div class="mount"><div class="nuno"><div class="photo"><img src="../shared/photos/p4.jpg" alt="運動会、最後まで走りきったよ" width="1200" height="900" loading="lazy"></div></div>
+      <figcaption class="tate">運動会、最後まで走りきったよ</figcaption></div>
+    </figure>
+    <figure class="fig">
+      <div class="mount"><div class="nuno"><div class="photo"><img src="../shared/photos/p5.jpg" alt="3歳のお誕生日おめでとう" width="1200" height="900" loading="lazy"></div></div>
+      <figcaption class="tate">3歳のお誕生日おめでとう</figcaption></div>
+    </figure>
+    <figure class="fig">
+      <div class="mount"><div class="nuno"><div class="photo"><img src="../shared/photos/p6.jpg" alt="雪の日、大きな雪だるま" width="1200" height="900" loading="lazy"></div></div>
+      <figcaption class="tate">雪の日、大きな雪だるま</figcaption></div>
+    </figure>
+
+    <!-- 四、結び -->
+    <section class="sc sc-close">
+      <img class="e e-musubi e-static" src="img/musubi.webp" width="1024" height="1536" alt="" loading="lazy">
+      <div class="musubi tate">
+        <p class="closing" data-t="closing">本年もよろしくお願いいたします</p>
+        <p class="date upright" data-t="date">2027年 元旦</p>
+        <p class="shomei"><span data-t="family">佐藤家一同</span><span class="hanko" data-t="eto">未</span></p>
+      </div>
+      <p class="modoru"><a href="../">← サンプル一覧へ</a></p>
+    </section>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+
+  /* --- 文言と写真を CONFIG から流し込む（すべて textContent） --- */
+  document.querySelectorAll('[data-t]').forEach(function (el) {
+    var v = CONFIG[el.dataset.t];
+    if (v != null) el.textContent = v;
+  });
+  document.title = CONFIG.greeting + ' ' + CONFIG.year + ' ｜ 新春絵巻';
+
+  // URLの ?to= ?msg= は外から来る値なので、長さを切って textContent で入れる
+  var q = new URLSearchParams(location.search);
+  var pick = function (key, max) {
+    var v = Array.from((q.get(key) || '').trim()).slice(0, max).join('');
+    return v || CONFIG[key];
+  };
+  var msg = pick('msg', 300);
+  $('#to').textContent = pick('to', 20);
+  $('#msg').textContent = msg;
+  if (Array.from(msg).length > 90) $('#tegami').classList.add('is-long'); // 長文は字を小さくして収める
+
+  var figs = Array.from(document.querySelectorAll('.fig'));
+  var imgs = figs.map(function (fig, i) {
+    var p = CONFIG.photos[i], img = fig.querySelector('img');
+    var missing = function () { img.classList.add('is-missing'); };
+    img.addEventListener('error', missing);
+    if (p) {
+      fig.querySelector('figcaption').textContent = p.caption;
+      img.alt = p.caption;
+      if (img.getAttribute('src') !== p.src) img.src = p.src;
+    }
+    if (img.complete && !img.naturalWidth) missing();
+    return img;
+  });
+
+  /* --- 絵巻モード --- */
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var root = document.documentElement, main = $('#emaki'), stage = $('#stage'), nagare = $('#nagare');
+  // 場面: 題字, 手紙, 写真×6, 結び。写真1枚あたり画面0.9枚ぶんのスクロール
+  var scenes = [$('.sc-open'), $('.sc-letter')].concat(figs, [$('.sc-close')]);
+  var N = scenes.length, PER = 0.9, RATE = 0.6; // RATE: 縦1pxで絵巻が流れる量
+  var S = 1, seg = 1, cur = -1, queued = false;
+  root.classList.add('is-emaki');
+
+  function near(k) { // 写真は、いまの1枚と前後だけ読み込む
+    [k - 1, k, k + 1].forEach(function (n) {
+      if (imgs[n]) { imgs[n].loading = 'eager'; imgs[n].classList.add('is-near'); }
+    });
+  }
+  function draw() {
+    queued = false;
+    var y = Math.min(S * N, Math.max(0, window.scrollY - main.offsetTop));
+    // 絵巻: scrollY から毎フレーム直接計算（transition・追従なし）
+    nagare.style.transform = 'translate3d(' + (y * seg / S).toFixed(2) + 'px,0,0)';
+    // 固定の場面: 境目を越えた瞬間に入れ替える
+    var i = Math.min(N - 1, Math.floor(y / S));
+    if (i !== cur) {
+      cur = i;
+      scenes.forEach(function (el, n) { el.classList.toggle('is-on', n === i); });
+      near(i - 2);
+    }
+  }
+  function layout() {
+    var vw = stage.clientWidth, vh = stage.clientHeight, narrow = vw <= 600;
+    // 写真と枠は整数pxに置く（写真の幅は4の倍数 → 高さも整数）
+    var ph = Math.floor(Math.min(narrow ? vw - 48 : 640, vh * (narrow ? 0.5 : 0.56)) / 4) * 4;
+    var pt = Math.round(ph * (narrow ? 0.26 : 0.3)), pb = Math.round(ph * (narrow ? 0.24 : 0.2));
+    var yoko = narrow ? 5 : 8, nuno = narrow ? 6 : 10;
+    var mw = ph + (yoko + nuno) * 2, mh = pt + 52 + ph * 0.75 + pb;
+    S = Math.round(vh * PER);
+    seg = Math.round(S * RATE);
+    var set = function (k, v) { root.style.setProperty(k, v + 'px'); };
+    set('--ph', ph); set('--pt', pt); set('--pb', pb); set('--yoko', yoko); set('--nuno', nuno);
+    set('--fx', Math.round((vw - mw) / 2)); set('--fy', Math.round((vh - mh) / 2)); set('--seg', seg);
+    nagare.style.width = (vw + seg * N) + 'px';
+    main.style.height = (S * N + vh) + 'px';
+    draw();
+  }
+  addEventListener('scroll', function () {
+    if (!queued) { queued = true; requestAnimationFrame(draw); }
+  }, { passive: true });
+  addEventListener('resize', layout);
+  layout();
+})();
+</script>
+</body>
+</html>
